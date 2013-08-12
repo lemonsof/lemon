@@ -37,6 +37,13 @@ namespace sof{
 		{
 			sof_close(*this);
 		}
+
+		void join()
+		{
+			sof_join(*this);
+
+			check_throw();
+		}
 	};
 
 }

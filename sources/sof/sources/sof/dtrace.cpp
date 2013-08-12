@@ -56,6 +56,8 @@ namespace sof{namespace impl{
 			msg->counter ++;
 
 			_msgs.push(msg);
+
+			_condition.notify_one();
 		}
 	}
 
@@ -76,7 +78,7 @@ namespace sof{namespace impl{
 
 			_msgs.pop();
 
-			lock.unlock();
+			//lock.unlock();
 
 			try
 			{
@@ -89,7 +91,7 @@ namespace sof{namespace impl{
 
 			_sysm->freemsg(msg);
 
-			lock.lock();
+			//lock.lock();
 		}
 	}
 

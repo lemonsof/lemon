@@ -18,12 +18,12 @@ struct stack_t
 
 struct fp_t
 {
-	sof_uint32_t     fc_freg[16];
+	sof_uint32_t		fc_freg[16];
 };
 
 struct sof_context_t
 {
-	sof_uint32_t      fc_greg[11];
+	sof_uint32_t		fc_greg[11];
 	stack_t             fc_stack;
 	fp_t                fc_fp;
 };

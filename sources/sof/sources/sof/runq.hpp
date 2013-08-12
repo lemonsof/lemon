@@ -11,9 +11,11 @@
 
 #include <mutex>
 #include <thread>
+#include <assert.h>
 #include <stdarg.h>
 #include <sof/actor.hpp>
-#include <sofxx/sof.hpp>
+#include <sofxx/dtrace.hpp>
+#include <sofxx/error_info.hpp>
 
 namespace sof{namespace impl{
 
@@ -27,30 +29,61 @@ namespace sof{namespace impl{
 
 		virtual ~basic_sof_runq(){ }
 
-		sof_system * sysm() { return _system; }
+		sof_t id() const
+		{
+			assert(_current);
 
-		virtual void join() const {}
+			return _current->Id;
+		}
 
 		void stop();
 
-		virtual sof_t id() = 0;
+		void set_current(sof_actor * current) 
+		{ 
+			_current = current; _current->Q = this; 
+		}
+
+		sof_actor* get_current() { return _current;}
+
+		sof_system * sysm() { return _system; }
 
 	public:
 
-		const sof_errno_info* last_errno() const;
+		virtual void join() = 0;
 
-		void raise_error(sof_state S,const char* msg ,const sof_errno_info* info);
-
-		void raise_trace(sof_state S,const char * file, int lines);
+	public:
 
 		void reset_errno();
 
+		const sof_errno_info* last_errno() const;
+
+		sof_context_t* context() { return &_context; }
+
+		void raise_trace(const char * file, int lines);
+
+		sof_t go(sof_f f, void * userdata,size_t stacksize);
+
+		void raise_error(const char* msg ,const sof_errno_info* info);
+
 		void trace( dtrace::level level,const char * fmt,va_list arg);
+
+		bool notify(sof_t target, const sof_event_t * waitlist, size_t len);
+
+		sof_event_t wait(const sof_mutext_t * mutex,const sof_event_t * waitlist, size_t len);
+
+	protected:
+
+		void dispatch();
+
 	private:
 
-		sof_errno_info						_lasterror;							
+		sof_actor										*_current;
 
-		sof_system							*_system;
+		sof_errno_info									_lasterror;							
+
+		sof_system										*_system;
+
+		sof_context_t									_context;
 	};
 
 
@@ -64,9 +97,9 @@ namespace sof{namespace impl{
 
 		void join();
 
-		void stop();
+	private:
 
-		sof_t id() { return SOF_MAIN_ACTOR_ID; }
+		sof_actor										_mainActor;
 	};
 
 	class sof_runq : public basic_sof_runq
@@ -79,8 +112,6 @@ namespace sof{namespace impl{
 
 		void join();
 
-		sof_t id() { return _current->id; }
-
 	private:
 
 		void proc();
@@ -90,6 +121,8 @@ namespace sof{namespace impl{
 		sof_actor											*_current;
 
 		std::thread											_worker;
+
+		sof_context_t										_context;
 	};
 }}
 

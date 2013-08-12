@@ -38,6 +38,9 @@
 
 #define SOF_MAIN_ACTOR_ID				0
 
+#define SOF_DEFAULT_STACKSIZE			(1024 * 4)
+
+#define SOF_INFINITE					(size_t)-1
 //////////////////////////////////////////////////////////////////////////
 
 #define SOF_HANDLE_STRUCT_NAME(name) name##__
@@ -116,9 +119,15 @@ typedef struct{
 
 typedef struct{
 	sof_extension_t									id;
-	void											(*stop)(sof_state S, void * userdata);
+	void											(*stop)(void * userdata);
 	void											(*close)(void * userdata);
 }													sof_extension_vtable;
+
+typedef struct{
+	void											*mutex;
+	void											(*lock)(void *mutex);
+	void											(*unlock)(void *mutex);
+}													sof_mutext_t;
 
 
 
@@ -180,7 +189,11 @@ SOF_API sof_uuid_t SOF_UNITTEST_ERROR_CATALOG;
 
 SOF_API sof_state sof_new(size_t maxcoros,size_t maxchannels);
 
+SOF_API void sof_stop(sof_state self);
+
 SOF_API void sof_close(sof_state self);
+
+SOF_API void sof_join(sof_state self);
 
 SOF_API void sof_raise_errno(sof_state self, const char* msg ,const sof_errno_info* info);
 
@@ -202,13 +215,15 @@ SOF_API void __sof_trace(sof_state self, int level,const char * fmt, ...);
 
 SOF_API void sof_new_extension(sof_state self, const sof_extension_vtable * vtable, void * userdata);
 
-SOF_API sof_t sof_go(sof_state self, sof_f f, void * userdata);
+SOF_API sof_t sof_go(sof_state self, sof_f f, void * userdata,size_t stacksize = SOF_DEFAULT_STACKSIZE);
 
-SOF_API sof_event_t sof_wait(sof_state self,const sof_event_t * waitlist, size_t len);
+SOF_API sof_event_t sof_wait(sof_state self,const sof_mutext_t * mutex,const sof_event_t * waitlist, size_t len);
 
-SOF_API void sof_notify(sof_state sel,sof_t target, const sof_event_t * waitlist, size_t len);
+SOF_API bool sof_notify(sof_state sel,sof_t target, const sof_event_t * waitlist, size_t len);
 
 //////////////////////////////////////////////////////////////////////////
+SOF_API void sof_sleep(sof_sleep self,size_t milliseconds);
 
+SOF_API sof_channel_t sof_timer(sof_sleep self, size_t timeoutOfmilliseconds, size_t times = SOF_INFINITE);
 
 #endif //SOF_ABI_H

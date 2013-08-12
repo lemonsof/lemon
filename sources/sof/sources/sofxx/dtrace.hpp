@@ -8,7 +8,7 @@
 */
 #ifndef SOFXX_DTRACE_HPP
 #define SOFXX_DTRACE_HPP
-
+#include <chrono>
 #include <iomanip>
 #include <iostream>
 #include <sof/abi.h>
@@ -62,6 +62,20 @@ namespace sof{namespace dtrace{
 		system										&_sysm;
 
 		sof_trace_t									_handle;
+	};
+
+	class null_consumer : public basic_consumer<null_consumer>
+	{
+	public:
+		null_consumer(system& S,int levels):basic_consumer(S,levels)
+		{
+
+		}
+
+		void consume(int , sof_int64_t ,sof_t , const char * )
+		{
+
+		}
 	};
 
 

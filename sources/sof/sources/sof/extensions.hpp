@@ -9,7 +9,8 @@
 #ifndef SOF_EXTENSIONS_HPP
 #define SOF_EXTENSIONS_HPP
 #include <mutex>
-#include <sofxx/sof.hpp>
+#include <sof/abi.h>
+#include <sofxx/nocopyable.hpp>
 
 namespace sof{namespace impl{
 
@@ -27,7 +28,7 @@ namespace sof{namespace impl{
 
 		~sof_extension_system();
 
-		void stop(sof_state S);
+		void stop();
 
 		void new_extension(sof_state S,const sof_extension_vtable * vtable, void * userdata);
 

@@ -4,7 +4,8 @@
 namespace sof{namespace impl{
 
 	sof_system::sof_system(size_t maxcoros,size_t maxchannels)
-		:_exit(true)
+		:_seq(1)
+		,_exit(false)
 		,_maxcoros(maxcoros?maxcoros:SOF_MAX_COROS)
 		,_maxchannels(maxchannels?maxchannels:SOF_MAX_CHANNELS)
 	{
@@ -18,7 +19,7 @@ namespace sof{namespace impl{
 
 	sof_system::~sof_system()
 	{
-		join();
+		//TODO: add exit function
 
 		for(auto q : _runqs)
 		{
@@ -26,17 +27,19 @@ namespace sof{namespace impl{
 		}
 	}
 
-	void sof_system::join() const
+	void sof_system::join()
 	{
 		for(auto q : _runqs)
 		{
 			q->join();
 		}
+
+		_extensionSystem.stop();
 	}
 
 	void sof_system::stop() 
 	{
-		std::unique_lock<std::mutex> lock(_mutex);
+		std::unique_lock<std::mutex> lock(_activeActorsMutex);
 
 		_exit = true;
 
@@ -47,7 +50,7 @@ namespace sof{namespace impl{
 	{
 		sof_actor* actor = nullptr;
 
-		std::unique_lock<std::mutex> lock(_mutex);
+		std::unique_lock<std::mutex> lock(_activeActorsMutex);
 
 		while(!_exit)
 		{
@@ -68,6 +71,117 @@ namespace sof{namespace impl{
 		}
 
 		return actor;
+	}
+
+	sof_t sof_system::go(sof_state S,sof_f f, void * userdata,size_t stacksize)
+	{
+		sof_actor *actor = nullptr;
+
+		{
+			std::unique_lock<std::mutex> lock(_actorMutex);
+
+			for(;;)
+			{
+				sof_t id = _seq ++ ;
+
+				if(id != 0 && id != SOF_INVALID_HANDLE && _actors.find(id) == _actors.end())
+				{
+					actor = _actorFactory.create(S,id,f,userdata,stacksize);
+
+					_actors[id] = actor;
+
+					break;
+				}
+			}
+		}
+
+		
+		assert(actor);
+
+		std::unique_lock<std::mutex> lock(_activeActorsMutex);
+
+		_activeActors.push(actor);
+
+		_condition.notify_one();
+
+		return actor->Id;
+	}
+
+
+	void sof_system::wait_or_kill(sof_actor * actor)
+	{
+		if(actor->Exit & (int)exit_status::exited)
+		{
+			std::unique_lock<std::mutex> lock(_actorMutex);
+
+			_actors.erase(actor->Id);
+
+			_actorFactory.close(actor);
+
+			return;
+		}
+
+		if(actor->Exit & (int)exit_status::killed)
+		{
+			std::unique_lock<std::mutex> lock(_activeActorsMutex);
+
+			_activeActors.push(actor);
+
+			return;
+		}
+
+		std::unique_lock<std::mutex> lock(_waitingActorsMutex);
+
+		if(actor->Mutex.mutex) actor->Mutex.unlock(actor->Mutex.mutex);
+
+		assert(_waitingActors.find(actor->Id) == _waitingActors.end());
+
+		_waitingActors[actor->Id] = actor;
+	}
+
+	bool sof_system::notify(sof_t target, const sof_event_t * waitlist, size_t len)
+	{
+		sof_actor * actor = nullptr;
+
+		{
+			std::unique_lock<std::mutex> lock(_waitingActorsMutex);
+
+			auto iter = _waitingActors.find(target);
+
+			if(iter == _waitingActors.end()) return false;
+
+			actor = iter->second;
+
+			assert(actor->WaitResult == SOF_INVALID_HANDLE);
+
+			for(size_t i = 0; i < len; ++ i)
+			{
+				for(size_t j = 0; j < actor->Waits; j ++ )
+				{
+					if(waitlist[i] == actor->WaitList[j])
+					{
+						actor->WaitResult = waitlist[i];
+
+						_waitingActors.erase(iter);
+
+						break;
+					}
+				}
+			}
+
+		}
+		
+
+		if(actor->WaitResult  != SOF_INVALID_HANDLE)
+		{
+			std::unique_lock<std::mutex> lock(_activeActorsMutex);
+
+			_activeActors.push(actor);
+
+			return true;
+		}
+
+		return false;
 	}
 }}
 

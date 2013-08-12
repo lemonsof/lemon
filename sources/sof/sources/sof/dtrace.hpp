@@ -14,9 +14,11 @@
 #include <thread>
 #include <chrono>
 #include <stdarg.h>
+#include <sof/abi.h>
 #include <unordered_map>
-#include <sofxx/sof.hpp>
+#include <sofxx/dtrace.hpp>
 #include <condition_variable>
+#include <sofxx/nocopyable.hpp>
 
 namespace sof{namespace impl{
 

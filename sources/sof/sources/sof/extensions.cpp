@@ -1,5 +1,6 @@
+#include <sof/assembly.h>
 #include <sof/extensions.hpp>
-
+#include <sofxx/error_info.hpp>
 
 namespace sof{namespace impl{
 
@@ -13,7 +14,7 @@ namespace sof{namespace impl{
 
 	}
 
-	void sof_extension_system::stop(sof_state S)
+	void sof_extension_system::stop()
 	{
 
 		std::unique_lock<std::mutex> lock(_mutex);
@@ -22,7 +23,7 @@ namespace sof{namespace impl{
 		{
 			if(_buckets[i].vtable.id != 0)
 			{
-				_buckets[i].vtable.stop(S,_buckets[i].userdata);
+				_buckets[i].vtable.stop(_buckets[i].userdata);
 			}
 		}
 	}

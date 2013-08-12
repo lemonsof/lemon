@@ -23,6 +23,18 @@ assembly =
 
 	   {
 			name = "EXTENSION_NOT_FOUND";
-	   }
+	   };
+
+	   {
+			name = "UNSUPPORT_OPTION";
+	   };
+
+	   {
+			name = "KILLED";
+	   };
+
+	   {
+			name = "UNKNOWN_EXCEPTION";
+	   };
    };
 }

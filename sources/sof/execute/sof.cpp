@@ -6,6 +6,7 @@
 * @version  1.0.0.0  
 * @date     2013/08/09
 */
+#include <chrono>
 #include <future>
 #include <thread>
 #include <atomic>
@@ -14,20 +15,39 @@
 
 using namespace sof;
 
-
 int main(int , char ** )
 {
+	using namespace std::chrono;
+
+	steady_clock::time_point t1 = steady_clock::now();
+
 	sof::system sysm;
 
 	sof::dtrace::console_consumer consumer(sysm,SOF_TRACE_ALL);
 
-	for(size_t i = 0 ; i < 100; ++i)
-	{
-		sof_log_error(sysm,"hello the world");
+	sof_t id = sysm.go([](sof::actor self){
 
+		sof_log_text(self,"try to waiting");
 
+		sof_event_t waitlist[] = {1,2,3,4,5};
 
-		sof_log_debug(sysm,"hello the world");
-	}
-	
+		self.wait(waitlist);
+
+		sof_log_text(self,"wakeup");
+
+		self.stop();
+
+	},1024);
+
+	while(!sysm.notify(id,5));
+
+	sysm.join();
+
+	steady_clock::time_point t2 = steady_clock::now();
+
+	duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
+
+	//std::cout << "It took me " << time_span.count() << " seconds." << std::endl;
+
+	sof_log_text(sysm,"It took me %f seconds",time_span.count());
 }
