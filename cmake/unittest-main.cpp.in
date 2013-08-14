@@ -7,22 +7,13 @@
 * @version  1.0.0.0  
 * @date     2012/01/14
 */
-#ifdef WIN32
-#	ifdef _DEBUG
-#		define _CRTDBG_MAP_ALLOC
-#		include <crtdbg.h>
-#	endif
-#endif
-#include <iostream>
-#include <lemonxx/unittest/unittest.hpp>
+
+#include <lemonxx/unittest.hpp>
 
 
 int main(int args,char ** argv)
 {
-#ifdef WIN32
-	_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );//memory leak check
-#endif //WIN32
-  lemon::unittest::cxx::ConsoleRunner runner("${NAME}",args,argv);
+	lemon::unittest::console_runner runner("${NAME}",args,argv);
 
-  return runner.Run();
+  	return runner.run();
 }

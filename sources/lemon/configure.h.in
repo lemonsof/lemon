@@ -1,0 +1,93 @@
+#include <errno.h>
+#include <stdio.h>
+#include <wchar.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
+
+#ifdef SOF_HAS_INTTYPES_H
+#	include <inttypes.h>
+#endif 
+
+#ifdef SOF_HAS_UNISTD_H
+#	include <unistd.h>
+#endif
+
+#ifdef SOF_HAS_STDINT_H
+#       include <stdint.h>
+#endif //SOF_HAS_INTTYPES_H
+
+#ifdef WIN32
+#	define WIN32_WINNT			${WIN32_WINNT} 			
+#	define _WIN32_WINDOWS		${_WIN32_WINDOWS} 			
+#	define NTDDI_VERSION		${NTDDI_VERSION} 			
+#	define _WIN32_IE			${_WIN32_IE} 			
+#endif //WIN32
+
+#ifdef WIN32
+#	ifdef _DEBUG
+#		define _CRTDBG_MAP_ALLOC
+#		include <crtdbg.h>
+#	endif
+#	define WIN32_LEAN_AND_MEAN  
+#	include <Windows.h>
+#	include <WinSock2.h>
+#	include <Ws2tcpip.h>
+#	include <tchar.h>
+#	pragma comment(lib,"Ws2_32.lib") 
+#else
+#	include <sys/types.h>
+#	include <sys/socket.h>
+#	include <netdb.h>
+#	include <sys/time.h>
+#endif //WIN32 
+
+
+typedef ${SBYTE_T} lemon_sbyte_t;
+
+typedef ${BYTE_T} lemon_byte_t;
+
+typedef ${SBYTE_T} lemon_int8_t;
+
+typedef ${BYTE_T} lemon_uint8_t;
+
+typedef ${INT16_T} lemon_int16_t;
+
+typedef ${UINT16_T} lemon_uint16_t;
+
+typedef ${INT32_T} lemon_int32_t;
+
+typedef ${UINT32_T} lemon_uint32_t;
+
+typedef ${INT64_T} lemon_int64_t;
+
+typedef ${UINT64_T} lemon_uint64_t;
+
+
+#ifndef __cplusplus
+
+#ifdef SOF_HAS_STDBOOL_H
+
+#include <stdbool.h>
+
+#else 
+
+#ifdef WIN32
+typedef LONG _Bool
+#endif //WIN32
+
+#define bool _Bool
+
+#define true 1
+
+#define false 0
+
+#define __bool_true_false_are_defined 1
+
+#endif //LEMON_HAS_STDBOOL_H
+
+#endif //
+
+#ifndef NULL
+#define NULL 0
+#endif

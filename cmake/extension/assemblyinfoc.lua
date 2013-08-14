@@ -205,21 +205,21 @@ headFile:write("#define " .. prefix .. "_ASSEMBLY_H\n")
 
 
 headFile:write("#include \"configure.h\"\n")
-headFile:write("#include <sof/abi.h>\n\n")
+headFile:write("#include <lemon/abi.h>\n\n")
 sourceFile:write("#include \"assembly.h\"\n\n")
 
-headFile:write(prefix .. "_API const sof_uuid_t " .. prefix .. "_GUID;\n\n")
-headFile:write(prefix .. "_API const sof_version_t " .. prefix .. "_VERSION;\n\n")
-sourceFile:write("const sof_uuid_t " .. prefix .. "_GUID = " .. guid .. ";\n\n")
-sourceFile:write("const sof_version_t " .. prefix .. "_VERSION = {" .. version[0] .. "," .. version[1] .. "," .. version[2] .. "," .. version[3] .. "};\n\n")
+headFile:write(prefix .. "_API const lemon_uuid_t " .. prefix .. "_GUID;\n\n")
+headFile:write(prefix .. "_API const lemon_version_t " .. prefix .. "_VERSION;\n\n")
+sourceFile:write("const lemon_uuid_t " .. prefix .. "_GUID = " .. guid .. ";\n\n")
+sourceFile:write("const lemon_version_t " .. prefix .. "_VERSION = {" .. version[0] .. "," .. version[1] .. "," .. version[2] .. "," .. version[3] .. "};\n\n")
 
 index = 0
 
 if(nil ~= assembly.errorcode) then
 
    for k,v in ipairs(assembly.errorcode) do 
-      headFile:write(prefix .. "_API const sof_errno_t " .. prefix .. "_" .. v.name .. ";\n\n")
-      sourceFile:write("const sof_errno_t " .. prefix .. "_" .. v.name .. " = {&" .. prefix .. "_GUID," .. k .. "};\n\n")
+      headFile:write(prefix .. "_API const lemon_errno_t " .. prefix .. "_" .. v.name .. ";\n\n")
+      sourceFile:write("const lemon_errno_t " .. prefix .. "_" .. v.name .. " = {&" .. prefix .. "_GUID," .. k .. "};\n\n")
    end
 
 end
