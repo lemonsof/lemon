@@ -25,9 +25,7 @@ namespace lemon{
 		{
 			if(empty())
 			{
-				error_info errorCode;
-
-				LEMON_USER_ERROR(errorCode,LEMON_RESOURCE_ERROR);
+				lemon_errno_info errorCode = {LEMON_RESOURCE_ERROR,__FILE__,__LINE__};
 
 				throw errorCode;
 			}

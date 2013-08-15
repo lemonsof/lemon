@@ -63,7 +63,10 @@ namespace lemon{namespace impl{
 
 		lemon_actor_factory & actor_factory() { return _actorFactory; }
 
-		lemon_extension_system& extension_system() { return _extensionSystem; }
+		void new_extension(const lemon_extension_vtable * vtable, void * userdata)
+		{
+			_extensionSystem.new_extension((lemon_state)get_main_runq(),vtable,userdata);
+		}
 
 		lemon_t go(lemon_state S,lemon_f f, void * userdata,size_t stacksize);
 
@@ -76,11 +79,16 @@ namespace lemon{namespace impl{
 			return (lemon_event_t)&_timewheel;
 		}
 
+		void set_main_runq(basic_lemon_runq * Q){ _mainRunQ = Q; }
+
+		basic_lemon_runq * get_main_runq() { return _mainRunQ; }
 	private:
 
 		void join();
 
 	private:
+
+		basic_lemon_runq								*_mainRunQ;
 
 		lemon_t											_seq;
 

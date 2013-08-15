@@ -19,49 +19,37 @@
 #define LEMON_IMPLEMENT_HANDLE(name) struct LEMON_HANDLE_STRUCT_NAME(name)
 
 //////////////////////////////////////////////////////////////////////////
+#define lemon_failed(ei)							((ei).error.catalog != NULL)	
 
-#define LEMON_RESET_ERRORINFO(errorinfo) {(errorinfo).error.catalog = 0;}
+#define lemon_success(ei)							(!lemon_failed(ei))
 
-#define LEMON_DECLARE_ERRORINFO(name) lemon_errno_info name = {{0,0},0,0}
+#define lemon_reset_errorinfo(ei)					ei.error.catalog = NULL
 
-#define LEMON_SUCCESS(errorinfo) ((errorinfo).error.catalog == 0)
+#define lemon_raise_trace(S)						lemon_raise_trace__(S,__FILE__,__LINE__)
 
-#define LEMON_FAILED(errorinfo) ((errorinfo).error.catalog != 0)
+#define lemon_raise_errno(S,msg,error)				*lemon_raise_errno__(S,msg,error.code,error.catalog,__FILE__,__LINE__)
 
-#define LEMON_MAKE_ERROR(error,catalog,errorCode) {error.catalog = &catalog;error.code = errorCode;}
+#define lemon_raise_win32_errno(S,msg,error)		*lemon_raise_errno__(S,msg,error.code,&LEMON_WIN32_ERROR_CATALOG,__FILE__,__LINE__)
 
-#define LEMON_MAKE_ERRORINFO(errorinfo,catalog,errorCode) \
-	LEMON_MAKE_ERROR(errorinfo.error,catalog,errorCode);\
-	errorinfo.file = __FILE__;\
-	errorinfo.lines = __LINE__;
+#define lemon_raise_posix_errno(S,msg,error)		*lemon_raise_errno__(S,msg,error.code,&LEMON_POSIX_ERROR_CATALOG,__FILE__,__LINE__)
 
-#define LEMON_WIN32_ERROR(errorinfo,ec) LEMON_MAKE_ERRORINFO((errorinfo),LEMON_WIN32_ERROR_CATALOG,ec)
+#define lemon_raise_com_errno(S,msg,error)			*lemon_raise_errno__(S,msg,error.code,&LEMON_COM_ERROR_CATALOG,__FILE__,__LINE__)
 
-#define LEMON_COM_ERROR(errorinfo,ec) LEMON_MAKE_ERRORINFO((errorinfo),LEMON_COM_ERROR_CATALOG,ec)
+//////////////////////////////////////////////////////////////////////////
 
-#define LEMON_POSIX_ERROR(errorinfo,ec) LEMON_MAKE_ERRORINFO((errorinfo),LEMON_POSIX_ERROR_CATALOG,ec)
+#define lemon_log(self,level,...)					if(lemon_trace_status(self,level)){ __lemon_trace(self,level,__VA_ARGS__);}
 
-#define LEMON_UNITTEST_ERROR(errorinfo,ec) LEMON_MAKE_ERRORINFO((errorinfo),LEMON_UNITTEST_ERROR_CATALOG,ec)
+#define lemon_log_verbose(provider,...)				lemon_log((provider),LEMON_TRACE_VERBOSE,__VA_ARGS__)
 
-#define LEMON_USER_ERROR(errorinfo,ec) {(errorinfo).error = ec;(errorinfo).file = __FILE__; (errorinfo).lines = __LINE__;}
+#define lemon_log_debug(provider,...)				lemon_log((provider),LEMON_TRACE_DEBUG,__VA_ARGS__)
 
+#define lemon_log_text(provider,...)				lemon_log((provider),LEMON_TRACE_TEXT,__VA_ARGS__)
 
-#define lemon_log(self,level,...)\
-	if(lemon_trace_status(self,level)){\
-	__lemon_trace(self,level,__VA_ARGS__);\
-	}
+#define lemon_log_warn(provider,...)				lemon_log((provider),LEMON_TRACE_WARNING,__VA_ARGS__)
 
-#define lemon_log_verbose(provider,...)		lemon_log((provider),LEMON_TRACE_VERBOSE,__VA_ARGS__)
+#define lemon_log_error(provider,...)				lemon_log((provider),LEMON_TRACE_ERROR,__VA_ARGS__)
 
-#define lemon_log_debug(provider,...)			lemon_log((provider),LEMON_TRACE_DEBUG,__VA_ARGS__)
-
-#define lemon_log_text(provider,...)			lemon_log((provider),LEMON_TRACE_TEXT,__VA_ARGS__)
-
-#define lemon_log_warn(provider,...)			lemon_log((provider),LEMON_TRACE_WARNING,__VA_ARGS__)
-
-#define lemon_log_error(provider,...)			lemon_log((provider),LEMON_TRACE_ERROR,__VA_ARGS__)
-
-#define lemon_log_fatal(provider,...)			lemon_log((provider),LEMON_TRACE_FATAL,__VA_ARGS__)
+#define lemon_log_fatal(provider,...)				lemon_log((provider),LEMON_TRACE_FATAL,__VA_ARGS__)
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -168,6 +156,7 @@ typedef struct{
 
 typedef struct{
 	lemon_extension_t								id;
+	void											(*start)(void * userdata,lemon_state S);
 	void											(*stop)(void * userdata);
 	void											(*close)(void * userdata);
 }													lemon_extension_vtable;
@@ -179,13 +168,13 @@ typedef struct{
 }													lemon_mutext_t;
 
 
-LEMON_API lemon_uuid_t LEMON_WIN32_ERROR_CATALOG;
+LEMON_API lemon_uuid_t								LEMON_WIN32_ERROR_CATALOG;
 
-LEMON_API lemon_uuid_t LEMON_COM_ERROR_CATALOG;
+LEMON_API lemon_uuid_t								LEMON_COM_ERROR_CATALOG;
 
-LEMON_API lemon_uuid_t LEMON_POSIX_ERROR_CATALOG;
+LEMON_API lemon_uuid_t								LEMON_POSIX_ERROR_CATALOG;
 
-LEMON_API lemon_uuid_t LEMON_UNITTEST_ERROR_CATALOG;
+LEMON_API lemon_uuid_t								LEMON_UNITTEST_ERROR_CATALOG;
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -197,9 +186,9 @@ LEMON_API void lemon_close(lemon_state self);
 
 LEMON_API void lemon_join(lemon_state self);
 
-LEMON_API void lemon_raise_errno(lemon_state self, const char* msg ,const lemon_errno_info* info);
+LEMON_API const lemon_errno_info* lemon_raise_errno__(lemon_state self, const char* msg , uintptr_t code,const lemon_uuid_t * catalog,const char * file,int lines);
 
-LEMON_API void lemon_raise_trace(lemon_state self, const char * file, int lines);
+LEMON_API void lemon_raise_trace__(lemon_state self, const char * file, int lines);
 
 LEMON_API void lemon_reset_errno(lemon_state self);
 

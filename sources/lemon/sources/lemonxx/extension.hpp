@@ -17,7 +17,12 @@ namespace lemon{
 	template<typename Extension>  class basic_extension : private nocopyable
 	{
 	public:
-		
+		void start(){}
+
+		void stop(){}
+
+	public:
+
 		static lemon_extension_vtable make_extension(Extension * ext)
 		{
 			lemon_extension_vtable vtable = {typeid(Extension),&basic_extension::__stop_extension,&basic_extension::__close_extension};
@@ -26,6 +31,13 @@ namespace lemon{
 		}
 
 	private:
+
+		static void __start_extension(void * userdata,lemon_state S)
+		{
+			reinterpret_cast<basic_extension*>(userdata)->_S = S;
+
+			reinterpret_cast<Extension*>(userdata)->start();
+		}
 
 		static void __close_extension(void * userdata)
 		{
@@ -36,6 +48,10 @@ namespace lemon{
 		{
 			reinterpret_cast<Extension*>(userdata)->stop();
 		}
+
+	private:
+
+		lemon_state													_S;
 	};
 }
 #endif //LEMONXX_EXTENSION_HPP

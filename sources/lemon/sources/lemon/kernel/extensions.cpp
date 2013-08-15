@@ -49,11 +49,7 @@ namespace lemon{namespace impl{
 			}
 		}
 
-		error_info errorCode;
-
-		LEMON_USER_ERROR(errorCode,LEMON_RESOURCE_ERROR);
-
-		errorCode.raise(S,"the extension hash map no empty bucket");
+		throw lemon_raise_errno(S,"the extension hash map no empty bucket",LEMON_RESOURCE_ERROR);
 	}
 
 	void * lemon_extension_system::get_extension(lemon_state S,lemon_extension_t id)
@@ -67,13 +63,7 @@ namespace lemon{namespace impl{
 			}
 		}
 
-		error_info errorCode;
-
-		LEMON_USER_ERROR(errorCode,LEMON_RESOURCE_ERROR);
-
-		errorCode.raise(S);
-
-		return nullptr;
+		throw lemon_raise_errno(S,"can't find extension",LEMON_RESOURCE_ERROR);
 	}
 
 	size_t lemon_extension_system::hash(lemon_extension_t id)

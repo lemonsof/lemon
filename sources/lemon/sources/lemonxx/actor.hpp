@@ -46,17 +46,13 @@ namespace lemon{
 			{
 				(*f)(S);
 			}
-			catch(const error_info &)
+			catch(const lemon_errno_info &)
 			{
-				lemon_raise_trace(S,__FILE__,__LINE__);
+				lemon_raise_trace__(S,__FILE__,__LINE__);
 			}
 			catch(...)
 			{
-				lemon_errno_info errorCode;
-
-				LEMON_USER_ERROR(errorCode,LEMON_UNKNOWN_EXCEPTION);
-
-				lemon_raise_errno(S,"unknown exception",&errorCode);
+				lemon_raise_errno(S,"unknown exception",LEMON_UNKNOWN_EXCEPTION);
 			}
 
 			delete f;
@@ -84,9 +80,9 @@ namespace lemon{
 		{
 			if(fail())
 			{
-				lemon_raise_trace(_S,file,lines);
+				lemon_raise_trace__(_S,file,lines);
 
-				throw error_info(*last_errno());
+				throw *last_errno();
 			}
 		}
 

@@ -232,9 +232,9 @@ namespace lemon{namespace unittest{
 
 				return 2;
 			}
-			catch(const error_info & e)
+			catch(const lemon_errno_info & e)
 			{
-				std::cerr << e << std::endl;
+				std::cerr << "catch the lemon_error_info :\n\tfile:" << e.file << "\n\tlines:" << e.lines << std::endl;
 
 				return 5;
 			}

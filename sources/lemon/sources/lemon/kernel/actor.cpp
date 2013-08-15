@@ -157,7 +157,7 @@ namespace lemon{namespace impl{
 		,Context(nullptr)
 		,Exit(0)
 	{
-		LEMON_RESET_ERRORINFO(LastError);
+		lemon_reset_errorinfo(LastError);
 	}
 
 	lemon_actor::lemon_actor(lemon_system * system,lemon_t id,lemon_f f, void * userdata,lemon_context_t* context)
@@ -169,7 +169,7 @@ namespace lemon{namespace impl{
 		,Context(context)
 		,Exit(0)
 	{
-		LEMON_RESET_ERRORINFO(LastError);
+		lemon_reset_errorinfo(LastError);
 	}
 
 	lemon_actor * lemon_actor_factory::create(lemon_state S,lemon_t id,lemon_f f, void * userdata,size_t stacksize)
@@ -178,11 +178,7 @@ namespace lemon{namespace impl{
 
 		if(!block)
 		{
-			error_info errorCode;
-
-			LEMON_USER_ERROR(errorCode,LEMON_RESOURCE_ERROR);
-
-			errorCode.raise(S);
+			throw lemon_raise_errno(S,NULL,LEMON_RESOURCE_ERROR);
 		}
 
 		block = (lemon_byte_t*)block - sizeof(lemon_actor);

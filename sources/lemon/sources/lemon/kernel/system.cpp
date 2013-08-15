@@ -88,7 +88,7 @@ namespace lemon{namespace impl{
 		{
 			auto actor = a.second;
 
-			runq->set_current(actor);
+			actor->Q = runq;
 
 			actor->Exit |= (int)exit_status::killed;
 
@@ -181,7 +181,7 @@ namespace lemon{namespace impl{
 			}
 
 		}
-		catch(const error_info&)
+		catch(const lemon_errno_info&)
 		{
 			{
 				std::unique_lock<std::mutex> lock(_waitingActorsMutex);
@@ -197,7 +197,7 @@ namespace lemon{namespace impl{
 				_condition.notify_one();
 			}
 
-			lemon_raise_trace((lemon_state)actor,__FILE__,__LINE__);
+			lemon_raise_trace((lemon_state)actor);
 		}
 	}
 

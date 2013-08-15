@@ -13,7 +13,7 @@ namespace lemon{namespace impl{
 
 			if(!actor) break;
 
-			set_current(actor);
+			actor->Q = this;
 
 			if(actor->Mutex.mutex) actor->Mutex.lock(actor->Mutex.mutex);
 
@@ -30,7 +30,9 @@ namespace lemon{namespace impl{
 	{
 		_mainActor.System = sysm();
 
-		set_current(&_mainActor);
+		_mainActor.Q = this;
+
+		sysm()->set_main_runq(this);
 	}
 
 	main_lemon_runq::~main_lemon_runq()
@@ -49,8 +51,6 @@ namespace lemon{namespace impl{
 		sysm()->join();
 
 		sysm()->kill_dispatch(this);
-
-		set_current(&_mainActor);
 	}
 
 	//////////////////////////////////////////////////////////////////////////

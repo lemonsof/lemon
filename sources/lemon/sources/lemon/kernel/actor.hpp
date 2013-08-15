@@ -56,7 +56,7 @@ namespace lemon{namespace impl{
 
 		size_t									Timeout;
 
-		error_info								LastError;
+		lemon_errno_info						LastError;
 	};
 
 	class lemon_actor_factory : private nocopyable
