@@ -9,8 +9,8 @@
 #ifndef LEMONXX_ACTOR_HPP
 #define LEMONXX_ACTOR_HPP
 
-#include <lemon/abi.h>
 #include <functional>
+#include <lemon/abi.h>
 #include <lemon/assembly.h>
 #include <lemonxx/error_info.hpp>
 #include <lemonxx/nocopyable.hpp>
@@ -48,7 +48,7 @@ namespace lemon{
 			}
 			catch(const lemon_errno_info &)
 			{
-				lemon_raise_trace__(S,__FILE__,__LINE__);
+				lemon_raise_trace__(S,"actor::__f catch exception",__FILE__,__LINE__);
 			}
 			catch(...)
 			{
@@ -80,7 +80,7 @@ namespace lemon{
 		{
 			if(fail())
 			{
-				lemon_raise_trace__(_S,file,lines);
+				lemon_raise_trace__(_S,NULL,file,lines);
 
 				throw *last_errno();
 			}
@@ -216,6 +216,44 @@ namespace lemon{
 			check_throw();
 
 			return result;
+		}
+
+		void* recv_poll(const lemon_channel_t* channelist, size_t len,size_t timeout)
+		{
+			void * data = lemon_recv_poll(_S,channelist,len,timeout);
+
+			check_throw();
+
+			return data;
+		}
+
+		void* recv_poll(const lemon_channel_t* channelist, size_t len)
+		{
+			void * data = lemon_recv_poll(_S,channelist,len);
+
+			check_throw();
+
+			return data;
+		}
+
+		template<size_t N>
+		void* recv_poll(const lemon_channel_t (&channelist)[N])
+		{
+			void * data = lemon_recv_poll(_S,channelist,N);
+
+			check_throw();
+
+			return data;
+		}
+
+		template<size_t N>
+		void* recv_poll(const lemon_channel_t (&channelist)[N],size_t timeout)
+		{
+			void * data = lemon_recv_poll(_S,channelist,N,timeout);
+
+			check_throw();
+
+			return data;
 		}
 
 	private:

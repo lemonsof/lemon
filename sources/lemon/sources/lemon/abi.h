@@ -25,7 +25,9 @@
 
 #define lemon_reset_errorinfo(ei)					ei.error.catalog = NULL
 
-#define lemon_raise_trace(S)						lemon_raise_trace__(S,__FILE__,__LINE__)
+#define lemon_raise_trace(S)						lemon_raise_trace__(S,NULL,__FILE__,__LINE__)
+
+#define lemon_raise_trace_msg(S,msg)				lemon_raise_trace__(S,msg,__FILE__,__LINE__)
 
 #define lemon_raise_errno(S,msg,error)				*lemon_raise_errno__(S,msg,error.code,error.catalog,__FILE__,__LINE__)
 
@@ -85,6 +87,15 @@
 #define LEMON_INFINITE								(size_t)-1
 
 #define LEMON_MS_OF_TICK							10
+
+#define LEMON_SEND_NOBLOCK							0x01
+#define LEMON_RECV_NOBLOCK							0x02
+#define LEMON_MULTI_RECV							0x04
+#define LEMON_CHANNEL_SEND							0x08
+#define LEMON_CHANNEL_RECV							0x10
+
+#define LEMON_CLOSE_CHANNEL_EVT						0x00
+
 //////////////////////////////////////////////////////////////////////////
 
 
@@ -102,7 +113,7 @@ LEMON_DECLARE_HANDLE								(lemon_state);
 
 
 typedef void										(*lemon_f)(lemon_state self,void * userdata);
-typedef void										(*lemon_msg_close_f)(void * userdata, void * msg);
+typedef void										(*lemon_msg_close_f)(lemon_state S,void * msg);
 typedef void										(*lemon_trace_f)(void * userdata, int level, lemon_int64_t timestamp,lemon_t source, const char * msg);
 
 //////////////////////////////////////////////////////////////////////////
@@ -144,17 +155,6 @@ typedef struct{
 }													lemon_version_t;
 
 typedef struct{
-	void											(*invoke_send)(lemon_state state,void * userdata, void * msg);
-	void											(*invoke_recv)(lemon_state state,void * userdata, void * msg);
-}													lemon_channel_vtable;
-
-typedef struct{
-	void											*msg;
-	lemon_msg_close_f								closef;
-	void											*userdata;
-}													lemon_msg;
-
-typedef struct{
 	lemon_extension_t								id;
 	void											(*start)(void * userdata,lemon_state S);
 	void											(*stop)(void * userdata);
@@ -188,7 +188,7 @@ LEMON_API void lemon_join(lemon_state self);
 
 LEMON_API const lemon_errno_info* lemon_raise_errno__(lemon_state self, const char* msg , uintptr_t code,const lemon_uuid_t * catalog,const char * file,int lines);
 
-LEMON_API void lemon_raise_trace__(lemon_state self, const char * file, int lines);
+LEMON_API void lemon_raise_trace__(lemon_state self,const char * msg, const char * file, int lines);
 
 LEMON_API void lemon_reset_errno(lemon_state self);
 
@@ -211,6 +211,16 @@ LEMON_API lemon_t lemon_go(lemon_state self, lemon_f f, void * userdata,size_t s
 LEMON_API lemon_event_t lemon_wait(lemon_state self,const lemon_mutext_t * mutex,const lemon_event_t * waitlist, size_t len,size_t timeout = LEMON_INFINITE);
 
 LEMON_API bool lemon_notify(lemon_state sel,lemon_t target, const lemon_event_t * waitlist, size_t len);
+
+LEMON_API lemon_channel_t lemon_make_channel(lemon_state S,lemon_msg_close_f f,size_t maxlen, int flags);
+
+LEMON_API void lemon_send(lemon_state S,lemon_channel_t channel, void * data, size_t timeout = LEMON_INFINITE);
+
+LEMON_API void* lemon_recv(lemon_state S,lemon_channel_t channel, size_t timeout = LEMON_INFINITE);
+
+LEMON_API void* lemon_recv_poll(lemon_state S,const lemon_channel_t *channelist,size_t len, size_t timeout = LEMON_INFINITE);
+
+LEMON_API void lemon_close_channel(lemon_state S,lemon_channel_t channel);
 
 //////////////////////////////////////////////////////////////////////////
 

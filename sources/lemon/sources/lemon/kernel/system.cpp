@@ -11,6 +11,8 @@ namespace lemon{namespace impl{
 	{
 		_timewheel.start(this);
 
+		_channelSystem.start(this);
+
 		size_t Qs = std::thread::hardware_concurrency();
 
 		for(size_t i = 0; i < Qs; ++ i)
@@ -51,6 +53,8 @@ namespace lemon{namespace impl{
 			_condition.notify_all();
 
 		}
+
+		_channelSystem.stop();
 
 		_timewheel.stop();
 	}
@@ -115,7 +119,7 @@ namespace lemon{namespace impl{
 			{
 				lemon_t id = _seq ++ ;
 
-				if(id != 0 && id != LEMON_INVALID_HANDLE && _actors.find(id) == _actors.end())
+				if(id != LEMON_MAIN_ACTOR_ID && id != LEMON_INVALID_HANDLE && _actors.find(id) == _actors.end())
 				{
 					actor = _actorFactory.create(S,id,f,userdata,stacksize);
 
@@ -170,7 +174,12 @@ namespace lemon{namespace impl{
 
 			_waitingActors[actor->Id] = actor;
 
-			if(actor->Mutex.mutex) actor->Mutex.unlock(actor->Mutex.mutex);
+			if(actor->Mutex.mutex) 
+			{
+				actor->Mutex.unlock(actor->Mutex.mutex);
+
+				lemon_log_debug((lemon_state)actor,"unlock ...");
+			}
 		}
 
 		try

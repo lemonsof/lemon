@@ -76,18 +76,37 @@ LEMON_API const lemon_errno_info* lemon_last_errno(lemon_state self)
 	return nullptr;
 }
 
-LEMON_API void lemon_raise_trace__(lemon_state self, const char * file, int lines)
+LEMON_API void lemon_raise_trace__(lemon_state self,const char * msg, const char * file, int lines)
 {
 	lemon_actor * actor = reinterpret_cast<lemon_actor*>(self);
 
-	const lemon_byte_t * bytes = (const lemon_byte_t *)actor->LastError.error.catalog;
+	if(lemon_failed(actor->LastError))
+	{
+		const lemon_byte_t * bytes = (const lemon_byte_t *)actor->LastError.error.catalog;
 
-	lemon_log_error(self,"trace exception\n\tcode:%d\n\t:%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\n\tfile:%s\n\tlines:%d\n\t",
-		actor->LastError.error.code,
-		bytes[3],bytes[2],bytes[1],bytes[0],bytes[5],bytes[4],bytes[7],bytes[6],
-		bytes[8],bytes[9],bytes[10],bytes[11],bytes[12],bytes[13],bytes[14],bytes[15],
-		file,
-		lines);
+		if(msg)
+		{
+			lemon_log_error(self,"trace exception: %s\n\tcode:%d\n\t:%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\n\tfile:%s\n\tlines:%d\n\t",
+				msg,
+				actor->LastError.error.code,
+				bytes[3],bytes[2],bytes[1],bytes[0],bytes[5],bytes[4],bytes[7],bytes[6],
+				bytes[8],bytes[9],bytes[10],bytes[11],bytes[12],bytes[13],bytes[14],bytes[15],
+				file,
+				lines);
+		}
+		else
+		{
+			lemon_log_error(self,"trace exception\n\tcode:%d\n\t:%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\n\tfile:%s\n\tlines:%d\n\t",
+				actor->LastError.error.code,
+				bytes[3],bytes[2],bytes[1],bytes[0],bytes[5],bytes[4],bytes[7],bytes[6],
+				bytes[8],bytes[9],bytes[10],bytes[11],bytes[12],bytes[13],bytes[14],bytes[15],
+				file,
+				lines);
+		}
+		
+	}
+
+	
 }
 
 LEMON_API void lemon_reset_errno(lemon_state self)
@@ -239,5 +258,72 @@ LEMON_API void lemon_new_extension(lemon_state self, const lemon_extension_vtabl
 	catch(const lemon_errno_info&)
 	{
 		lemon_raise_trace(self);
+	}
+}
+
+
+LEMON_API lemon_channel_t lemon_make_channel(lemon_state S,lemon_msg_close_f f,size_t maxlen, int flags)
+{
+	try
+	{
+		return reinterpret_cast<lemon_actor*>(S)->System->channel_system().make_channel(S,f,maxlen,flags);
+	}
+	catch(const lemon_errno_info&)
+	{
+		lemon_raise_trace(S);
+
+		return LEMON_INVALID_HANDLE;
+	}
+}
+
+LEMON_API void lemon_send(lemon_state S,lemon_channel_t channel, void * data, size_t timeout)
+{
+	try
+	{
+		reinterpret_cast<lemon_actor*>(S)->System->channel_system().send(S,channel,data,timeout);
+	}
+	catch(const lemon_errno_info&)
+	{
+		lemon_raise_trace(S);
+	}
+}
+
+LEMON_API void* lemon_recv(lemon_state S,lemon_channel_t channel, size_t timeout)
+{
+	try
+	{
+		return reinterpret_cast<lemon_actor*>(S)->System->channel_system().recv(S,channel,timeout);
+	}
+	catch(const lemon_errno_info&)
+	{
+		lemon_raise_trace(S);
+
+		return nullptr;
+	}
+}
+
+LEMON_API void lemon_close_channel(lemon_state S,lemon_channel_t channel)
+{
+	try
+	{
+		return reinterpret_cast<lemon_actor*>(S)->System->channel_system().close_channel(channel);
+	}
+	catch(const lemon_errno_info&)
+	{
+		lemon_raise_trace(S);
+	}
+}
+
+LEMON_API void* lemon_recv_poll(lemon_state S,const lemon_channel_t *channelist,size_t len, size_t timeout)
+{
+	try
+	{
+		return reinterpret_cast<lemon_actor*>(S)->System->channel_system().recv(S,channelist,len,timeout);
+	}
+	catch(const lemon_errno_info&)
+	{
+		lemon_raise_trace(S);
+
+		return nullptr;
 	}
 }

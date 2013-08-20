@@ -15,7 +15,12 @@ namespace lemon{namespace impl{
 
 			actor->Q = this;
 
-			if(actor->Mutex.mutex) actor->Mutex.lock(actor->Mutex.mutex);
+			if(actor->Mutex.mutex)
+			{
+				actor->Mutex.lock(actor->Mutex.mutex);
+
+				lemon_log_debug((lemon_state)actor,"locked ...");
+			}
 
 			lemon_context_jump(context(),actor->Context,(intptr_t)actor);
 

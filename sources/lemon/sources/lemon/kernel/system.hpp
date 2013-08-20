@@ -22,7 +22,7 @@
 #include <lemon/kernel/dtrace.hpp>
 #include <lemon/kernel/timewheel.hpp>
 #include <lemon/kernel/extensions.hpp>
-
+#include <lemon/kernel/channelsysm.hpp>
 
 
 
@@ -79,16 +79,18 @@ namespace lemon{namespace impl{
 			return (lemon_event_t)&_timewheel;
 		}
 
-		void set_main_runq(basic_lemon_runq * Q){ _mainRunQ = Q; }
+		void set_main_runq(main_lemon_runq * Q){ _mainRunQ = Q; }
 
-		basic_lemon_runq * get_main_runq() { return _mainRunQ; }
+		main_lemon_runq * get_main_runq() { return _mainRunQ; }
+
+		lemon_channel_system & channel_system() { return _channelSystem; }
 	private:
 
 		void join();
 
 	private:
 
-		basic_lemon_runq								*_mainRunQ;
+		main_lemon_runq									*_mainRunQ;
 
 		lemon_t											_seq;
 
@@ -123,6 +125,8 @@ namespace lemon{namespace impl{
 		lemon_extension_system							_extensionSystem;
 
 		lemon_timewheel									_timewheel;
+
+		lemon_channel_system							_channelSystem;
 	};
 }}
 

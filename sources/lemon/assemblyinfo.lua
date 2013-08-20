@@ -36,5 +36,13 @@ assembly =
 	   {
 			name = "UNKNOWN_EXCEPTION";
 	   };
+
+	   {
+			name = "CHANNEL_NOT_EXISTS";
+	   };
+
+	   {
+			name = "MULIT_RECV_EXCEPTION";
+	   };
    };
 }

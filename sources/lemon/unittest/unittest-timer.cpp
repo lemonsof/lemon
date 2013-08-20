@@ -36,7 +36,7 @@ namespace lemon{namespace {
 	{
 		lemon::system sysm;
 
-		lemon::dtrace::console_consumer consumer(sysm,LEMON_TRACE_ALL);
+		lemon::dtrace::null_consumer consumer(sysm,LEMON_TRACE_ALL);
 
 		auto id = sysm.go([](lemon::actor self)
 		{
