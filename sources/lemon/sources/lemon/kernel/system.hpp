@@ -4,131 +4,117 @@
 * @brief    Copyright (C) 2013  yayanyang All Rights Reserved 
 * @author   yayanyang
 * @version  1.0.0.0  
-* @date     2013/08/07
+* @date     2013/08/21
 */
 #ifndef LEMON_SYSTEM_HPP
 #define LEMON_SYSTEM_HPP
 
-#include <queue>
+#include <list>
 #include <mutex>
-#include <thread>
 #include <lemon/abi.h>
-#include <unordered_map>
+#include <unordered_set>
+#include <lemon/assembly.h>
 #include <condition_variable>
 #include <lemon/kernel/runq.hpp>
-#include <lemon/kernel/actor.hpp>
 #include <lemonxx/nocopyable.hpp>
-#include <lemonxx/error_info.hpp>
 #include <lemon/kernel/dtrace.hpp>
 #include <lemon/kernel/timewheel.hpp>
 #include <lemon/kernel/extensions.hpp>
-#include <lemon/kernel/channelsysm.hpp>
+#include <lemon/kernel/actor-system.hpp>
+#include <lemon/kernel/channel-system.hpp>
 
 
+#ifdef lemon_log
+#undef lemon_log
+#define lemon_log(sysm,level,...) if(sysm.status(level)){ sysm.trace(level,__VA_ARGS__);}
+#endif
 
-namespace lemon{namespace impl{
-
-	struct lemon_actor;
-
-	class basic_lemon_runq;
+namespace lemon{namespace kernel{
 
 	class lemon_system : private nocopyable
 	{
 	public:
-		friend class main_lemon_runq;
 
-		typedef std::vector<basic_lemon_runq*>				runqs;
-		
-		typedef std::unordered_map<lemon_t,lemon_actor*>		actors_t;
+		typedef std::unordered_set<lemon_t>					actors_type;
 
-		typedef std::queue<lemon_actor*>						active_actors;
+		typedef std::list<lemon_actor*>						actors_queue_type;	
+
+		typedef std::vector<lemon_runq*>					runqs_t;
 
 		lemon_system(size_t maxcoros,size_t maxchannels);
 
 		~lemon_system();
 
-	public:
+		void join();
 
 		void stop();
 
-		lemon_actor* dispatch();
+		bool exited() const { return _exit; }
 
-		void kill_dispatch(basic_lemon_runq * runq);
+	public:
+
+		lemon_actor * main_actor() { return &_mainActor; }
+
+		lemon_trace_system  & trace_system(){ return _traceSystem; }
+
+		void new_extension(lemon_t source,const lemon_extension_vtable * vtable, void * userdata)
+		{
+			_extensionSystem.new_extension(source,vtable,userdata);
+		}
+
+		lemon_channel_system & channel_system() { return _channelSystem; }
+
+	public:
+
+		lemon_actor* dispatch_one();
 
 		void wait_or_kill(lemon_actor * actor);
 
-		actors_t & actors() { return _actors; }
-
-		lemon_trace_system & trace_system(){ return _traceSystem; }
-
-		lemon_actor_factory & actor_factory() { return _actorFactory; }
-
-		void new_extension(const lemon_extension_vtable * vtable, void * userdata)
-		{
-			_extensionSystem.new_extension((lemon_state)get_main_runq(),vtable,userdata);
-		}
-
-		lemon_t go(lemon_state S,lemon_f f, void * userdata,size_t stacksize);
-
-		bool notify(lemon_t target, const lemon_event_t * waitlist, size_t len);
-
 		bool notify_timeout(lemon_t target);
 
-		lemon_event_t timer_event()
-		{
-			return (lemon_event_t)&_timewheel;
-		}
+		bool notify(lemon_t target,const const_buff<lemon_event_t> & events);
 
-		void set_main_runq(main_lemon_runq * Q){ _mainRunQ = Q; }
-
-		main_lemon_runq * get_main_runq() { return _mainRunQ; }
-
-		lemon_channel_system & channel_system() { return _channelSystem; }
-	private:
-
-		void join();
+		lemon_t go(lemon_t source,lemon_f f, void * userdata,size_t stacksize);
 
 	private:
 
-		main_lemon_runq									*_mainRunQ;
-
-		lemon_t											_seq;
-
-		bool											_exit;
-
-		std::mutex										_actorMutex;
-
-		std::mutex										_extensionMutex;
-
-		std::mutex										_activeActorsMutex;
-
-		std::mutex										_waitingActorsMutex;
-
-		std::condition_variable							_condition;
-
-		size_t											_maxcoros;
-
-		size_t											_maxchannels;
+		size_t												_maxcoros;
 		
-		actors_t										_actors;
+		size_t												_maxchannels;
 
-		actors_t										_waitingActors;
+		lemon_actor											_mainActor;
 
-		active_actors									_activeActors;
+		bool												_exit;
 
-		runqs											_runqs;
+		uintptr_t											_seq;
 
-		lemon_trace_system								_traceSystem;
+		lemon_timewheel										_timewheel;
 
-		lemon_actor_factory								_actorFactory;
+		lemon_trace_system									_traceSystem;
 
-		lemon_extension_system							_extensionSystem;
+		lemon_actor_system									_actorSystem;
 
-		lemon_timewheel									_timewheel;
+		lemon_extension_system								_extensionSystem;
 
-		lemon_channel_system							_channelSystem;
+		lemon_channel_system								_channelSystem;
+
+		std::condition_variable								_condition;
+
+		std::mutex											_actorsMutex;
+
+		actors_type											_actors;
+
+		std::mutex											_activeActorsMutex;
+
+		actors_queue_type									_activeActors;
+
+		std::mutex											_waitingActorsMutex;
+
+		actors_type											_waitingActors;
+
+		runqs_t												_runqs;
 	};
-}}
 
+}}
 
 #endif //LEMON_SYSTEM_HPP

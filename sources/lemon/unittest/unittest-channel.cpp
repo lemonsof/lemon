@@ -5,128 +5,110 @@ namespace lemon{namespace {
 
 	class channel_unittest{};
 
-	LEMON_UNITTEST_CASE(channel_unittest,echo_test)
+	LEMON_UNITTEST_CASE(channel_unittest,push_block_flags_test)
 	{
-		lemon::system sysm;
+		system sysm;
 
-		lemon::dtrace::null_consumer consumer(sysm,LEMON_TRACE_ALL);
+		dtrace::open_console(sysm,LEMON_TRACE_ALL);
 
-		lemon_channel_t chan = channel(sysm);
+		channel chan(sysm,LEMON_CHANNEL_PUSH);
 
-		sysm.go([chan](lemon::actor self)
-		{
-			scope_channel exp(self,chan);
+		lemon_channel_t id = chan;
 
-			for(size_t  i = 0; i < 1000 ; ++ i)
-			{
-				exp.send(new size_t(i));
-			}
+		sysm.go([=](actor self){
+
+			channel chan(self,id);
+
+			lemon_expect_exception(chan.recv(LEMON_CHANNEL_EXPORT),lemon_errno_info);
+		});
+
+		sysm.go([=](actor self){
+
+			channel chan(self,id);
+
+			lemon_expect_exception(chan.send(nullptr,LEMON_CHANNEL_IMPORT),lemon_errno_info);
 
 			self.stop();
-			
-		},1024 * 16);
+		});
 
-		sysm.go([chan](lemon::actor self)
-		{
-			scope_channel imp(self,chan);
-
-			for(;;)
-			{
-				size_t * counter = (size_t*)imp.recv();
-
-				lemon_log_text(self,"counter :%u",*counter);
-
-				delete counter;
-			}
-
-		},1024 * 16);
 
 		sysm.join();
 	}
 
-	LEMON_UNITTEST_CASE(channel_unittest,publish_test)
+	LEMON_UNITTEST_CASE(channel_unittest,push_block_test)
 	{
-		lemon::system sysm;
+		system sysm;
 
-		lemon::dtrace::null_consumer consumer(sysm, LEMON_TRACE_VERBOSE);
+		dtrace::open_console(sysm,LEMON_TRACE_TEXT);
 
-		lemon_channel_t chan = channel(sysm,1024,channel::mult_recv);
+		channel chan(sysm,LEMON_CHANNEL_PUSH);
 
-		for(size_t i = 0; i < 10; ++ i)
-		{
-			sysm.go([chan](lemon::actor self)
+		channel chan2(sysm,LEMON_CHANNEL_PUSH);
+
+		lemon_channel_t id = chan;
+
+		lemon_channel_t id2 = chan2;
+
+		int workers = 100;
+
+		int loop = 10;
+
+		sysm.go([=](actor self){
+
+			channel chan(self,id);
+
+			for(int i = 0; i < workers * loop; ++ i)
 			{
-				scope_channel imp(self,chan);
+				lemon_log_debug(self,"manager send %d",i);
+
+				chan.send_noblock(nullptr);
+
+				lemon_log_debug(self,"manager send %d -- success",i);
+			}
+
+			lemon_log_text(self,"manager send finish");
+
+			chan.release();
+		});
+
+		sysm.go([=](actor self){
+
+			channel chan2(self,id2);
+
+			for(int i = 0; i < workers * loop; ++ i)
+			{
+				lemon_log_debug(self,"reduce recv %d",i);
+
+				chan2.recv();
+
+				lemon_log_debug(self,"reduce recv %d -- success",i);
+			}
+
+			self.stop();
+		});
+
+	
+
+		for(int i = 0; i < workers; ++ i)
+		{
+			sysm.go([=](actor self){
+
+				channel chan(self,id);
+
+				channel chan2(self,id2);
 
 				for(;;)
 				{
-					size_t * counter = (size_t*)imp.recv();
+					chan.recv();
 
-					lemon_log_text(self,"counter :%u",*counter);
+					lemon_log_verbose(self,"worker(%p) recv",(lemon_state)self);
 
-					delete counter;
+					chan2.send_noblock(nullptr);
 				}
-
-			},1024 * 32);
-		}
-
-		sysm.go([chan](lemon::actor self)
-		{
-			scope_channel exp(self,chan);
-
-			for(size_t  i = 0; i < 1000 ; ++ i)
-			{
-				exp.send(new size_t(i));
-			}
-
-			lemon_log_verbose(self,"---")
-
-			self.stop();
-
-		},1024 * 32);
-
-		
-
-		sysm.join();
-	}
-
-	LEMON_UNITTEST_CASE(channel_unittest,poll_test)
-	{
-		lemon::system sysm;
-
-		lemon::dtrace::console_consumer consumer(sysm, LEMON_TRACE_VERBOSE );
-
-		std::vector<lemon_channel_t> chans(1000);
-
-		for(auto & chan : chans)
-		{
-			chan = channel(sysm,1024,channel::mult_recv);
-		}
-
-		sysm.go([&chans](lemon::actor self)
-		{
-			for(size_t i = 0; i < chans.size(); ++ i)
-			{
-				size_t * counter = (size_t*)self.recv_poll(&chans[0],chans.size());
-
-				lemon_log_verbose(self,"counter :%u",*counter);
-			}
-
-			self.stop();
-
-		},1024 * 32);
-
-		for(size_t i = 0; i < chans.size(); ++ i)
-		{
-			sysm.go([=,&chans](lemon::actor self)
-			{
-				scope_channel exp(self,chans[i]);
-
-				exp.send(new size_t(i));
-				
-			},1024 * 32);
+			});
 		}
 
 		sysm.join();
 	}
+	
 }}

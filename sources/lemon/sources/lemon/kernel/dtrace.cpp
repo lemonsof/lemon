@@ -1,7 +1,7 @@
 #include <functional>
 #include <lemon/kernel/dtrace.hpp>
 
-namespace lemon{namespace impl{
+namespace lemon{namespace kernel{
 
 	lemon_trace::lemon_trace(lemon_trace_system* sysm,lemon_trace_f f, void * userdata, int levels) 
 		:_flags(levels)
@@ -82,7 +82,7 @@ namespace lemon{namespace impl{
 
 			try
 			{
-				_f(_userdata,msg->level,msg->timestamp,msg->source,msg->buff);
+				if(_f) _f(_userdata,msg->level,msg->timestamp,msg->source,msg->buff);
 			}
 			catch(...)
 			{
@@ -108,7 +108,7 @@ namespace lemon{namespace impl{
 		}
 	}
 
-	void lemon_trace_system::trace(lemon_t source,dtrace::level level, const char * fmt,va_list arg)
+	void lemon_trace_system::trace(lemon_t source,int level, const char * fmt,va_list arg)
 	{
 		if(((int)level & _flags))
 		{
@@ -143,7 +143,7 @@ namespace lemon{namespace impl{
 		}
 	}
 
-	bool lemon_trace_system::status(dtrace::level level)
+	bool lemon_trace_system::status(int level)
 	{
 		return ((int)level & _flags) != 0;
 	}
@@ -178,7 +178,7 @@ namespace lemon{namespace impl{
 
 		for(;;)
 		{
-			lemon_trace_t id = _seq ++;
+			lemon_trace_t id = (lemon_trace_t)_seq ++;
 
 			if(_traces.find(id) != _traces.end()) continue;
 

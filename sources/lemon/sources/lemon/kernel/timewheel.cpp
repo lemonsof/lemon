@@ -3,7 +3,7 @@
 #include <lemon/kernel/system.hpp>
 #include <lemon/kernel/timewheel.hpp>
 
-namespace lemon{namespace impl{
+namespace lemon{namespace kernel{
 
 	lemon_timewheel::lemon_timewheel():_sysm(nullptr),_exit(false)
 	{
@@ -48,7 +48,7 @@ namespace lemon{namespace impl{
 
 	lemon_timewheel::timer * lemon_timewheel::new_timer(lemon_t target,size_t timeout)
 	{
-		return new timer(target,timeout / LEMON_MS_OF_TICK);
+		return new timer(target,timeout / LEMON_MILLISECONDS_OF_TICK + 1);
 	}
 
 	void lemon_timewheel::free_timer(lemon_timewheel::timer * val)
@@ -68,7 +68,11 @@ namespace lemon{namespace impl{
 
 		if(0 == tick)
 		{
+			_mutex.unlock();
+
 			_sysm->notify_timeout(t->target);
+
+			_mutex.lock();
 
 			free_timer(t);
 
@@ -193,7 +197,11 @@ namespace lemon{namespace impl{
 
 			timers->next = NULL; timers->prev = NULL;
 
+			_mutex.unlock();
+
 			_sysm->notify_timeout(timers->target);
+
+			_mutex.lock();
 
 			free_timer(timers);
 
@@ -207,7 +215,7 @@ namespace lemon{namespace impl{
 
 		while(!_exit)
 		{
-			if(std::cv_status::timeout == _condition.wait_for(lock, std::chrono::milliseconds(LEMON_MS_OF_TICK)))
+			if(std::cv_status::timeout == _condition.wait_for(lock, std::chrono::milliseconds(LEMON_MILLISECONDS_OF_TICK)))
 			{
 				tick();
 			}

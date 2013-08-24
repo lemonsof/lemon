@@ -1,8 +1,8 @@
 #include <lemon/assembly.h>
+#include <lemon/kernel/system.hpp>
 #include <lemon/kernel/extensions.hpp>
-#include <lemonxx/error_info.hpp>
 
-namespace lemon{namespace impl{
+namespace lemon{namespace kernel{
 
 	lemon_extension_system::lemon_extension_system():_counter(0)
 	{
@@ -28,7 +28,7 @@ namespace lemon{namespace impl{
 		}
 	}
 
-	void lemon_extension_system::new_extension(lemon_state S,const lemon_extension_vtable * vtable, void * userdata)
+	void lemon_extension_system::new_extension(lemon_t source,const lemon_extension_vtable * vtable, void * userdata)
 	{
 		std::unique_lock<std::mutex> lock(_mutex);
 
@@ -49,10 +49,16 @@ namespace lemon{namespace impl{
 			}
 		}
 
-		throw lemon_raise_errno(S,"the extension hash map no empty bucket",LEMON_RESOURCE_ERROR);
+		lemon_log_error(_system->trace_system(),source,"the max extension loaded");
+
+		lemon_declare_errinfo(errorCode);
+
+		lemon_user_errno(errorCode,LEMON_RESOURCE_ERROR);
+
+		throw errorCode;
 	}
 
-	void * lemon_extension_system::get_extension(lemon_state S,lemon_extension_t id)
+	void * lemon_extension_system::get_extension(lemon_t source,lemon_extension_t id)
 	{
 
 		for(size_t i = hash(id); i < buckets_capacity; ++ i)
@@ -63,7 +69,13 @@ namespace lemon{namespace impl{
 			}
 		}
 
-		throw lemon_raise_errno(S,"can't find extension",LEMON_RESOURCE_ERROR);
+		lemon_log_error(_system->trace_system(),source,"can't found extension id : %d",(int)id);
+
+		lemon_declare_errinfo(errorCode);
+
+		lemon_user_errno(errorCode,LEMON_EXTENSION_NOT_FOUND);
+
+		throw errorCode;
 	}
 
 	size_t lemon_extension_system::hash(lemon_extension_t id)

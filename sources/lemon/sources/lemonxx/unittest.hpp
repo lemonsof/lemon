@@ -9,6 +9,7 @@
 #ifndef LEMONXX_UNITTEST_HPP
 #define LEMONXX_UNITTEST_HPP
 #include <map>
+#include <string>
 #include <chrono>
 #include <vector>
 #include <iostream>
@@ -16,7 +17,6 @@
 #include <stdexcept>
 #include <lemon/assembly.h>
 #include <lemonxx/nocopyable.hpp>
-#include <lemonxx/error_info.hpp>
 
 namespace lemon{namespace unittest{
 
@@ -335,6 +335,6 @@ void TestCaseName::run()
 
 #define lemon_check(condition) lemon::unittest::check((bool)(condition),"condition check error --> "#condition,__FILE__,__LINE__)
 
-#define lemon_expect_exception(exp,Expression) try{(exp);lemon::unittest::check(false,"expect exception failed"#Expression,__FILE__,__LINE__);}catch(const Expression&){}
+#define lemon_expect_exception(exp,exception) try{(exp);lemon::unittest::check(false,"expect exception failed"#exception,__FILE__,__LINE__);}catch(const exception&){}
 
 #endif //LEMONXX_UNITTEST_HPP

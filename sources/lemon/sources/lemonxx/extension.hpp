@@ -10,7 +10,6 @@
 #define LEMONXX_EXTENSION_HPP
 #include <lemon/abi.h>
 #include <lemonxx/nocopyable.hpp>
-#include <lemonxx/error_info.hpp>
 
 namespace lemon{
 

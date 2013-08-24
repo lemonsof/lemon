@@ -4,105 +4,133 @@
 * @brief    Copyright (C) 2013  yayanyang All Rights Reserved 
 * @author   yayanyang
 * @version  1.0.0.0  
-* @date     2013/08/16
+* @date     2013/08/23
 */
 #ifndef LEMON_KERNEL_CHANNEL_HPP
 #define LEMON_KERNEL_CHANNEL_HPP
 #include <list>
 #include <mutex>
 #include <lemon/abi.h>
-#include <unordered_map>
-#include <lemon/assembly.h>
 #include <lemonxx/nocopyable.hpp>
 
-namespace lemon{namespace impl{
+namespace lemon{namespace kernel{
+
+	class lemon_actor;
 
 	class lemon_system;
 
-	struct lemon_msg
-	{
-		lemon_t											sender;
-
-		void											*msg;
-	};
-
 	class lemon_channel : private nocopyable
 	{
+	protected:
+
+		lemon_channel(lemon_system* sysm,lemon_msg_close_f f,void * userdata);
+
+		virtual ~lemon_channel(){}
+
 	public:
-		typedef std::list<lemon_msg>					msg_queue;
 
-		typedef std::list<lemon_t>						recv_queue;
-
-		lemon_channel(lemon_system * sysm,lemon_msg_close_f f, size_t maxlen,int flags);
-
-		~lemon_channel();
-
-		int flags() const { return _flags; }
-
-		void push(lemon_state S, const lemon_msg &msg)
+		static lemon_event_t close_event()
 		{
-			if(_Q.size() == _maxlen)
+			static void * unknown;
+
+			return (lemon_event_t)&unknown;
+		}
+
+		bool release(bool force = false)
+		{
+			if(force)
 			{
-				throw lemon_raise_errno(S,nullptr,LEMON_RESOURCE_ERROR);
+				delete this;
+
+				return true;
 			}
 
-			_Q.push_back(msg);
-		}
-
-		bool pop(lemon_msg & msg)
-		{
-			if(_Q.empty()) return false;
-
-			msg = _Q.front();
-
-			_Q.pop_front();
-
-			return true;
-		}
-
-		void wait_recv(lemon_state S,lemon_t receiver)
-		{
-			if((LEMON_MULTI_RECV & _flags) == 0 && !_recvQ.empty())
+			if(-- _counter == 0)
 			{
-				throw lemon_raise_errno(S,nullptr,LEMON_MULIT_RECV_EXCEPTION);
+				delete this;
+
+				return true;
 			}
-			
-			_recvQ.push_back(receiver);
+
+			return false;
 		}
 
-		void notif_one(lemon_state S)
+		void addref()
 		{
-			while(!_recvQ.empty())
-			{
-				auto target = _recvQ.front();
-
-				_recvQ.pop_front();
-
-				lemon_event_t evt[] = {(lemon_event_t)this};
-
-				if(lemon_notify(S,target,evt,sizeof(evt)/sizeof(lemon_event_t)))
-				{
-					lemon_log_debug(S,"notify the target :0x%06llx",target);
-
-					break;
-				}
-			}
+			++ _counter;
 		}
 
-	private:					
+		static lemon_channel* from(lemon_channel_t id)
+		{
+			return reinterpret_cast<lemon_channel*>(id);
+		}
 
-		lemon_system									*_sysm;
+		lemon_channel_t id()
+		{
+			return (lemon_channel_t)this;
+		}
 
-		lemon_msg_close_f								_f;
+		operator lemon_channel_t()
+		{
+			return id();
+		}
 
-		size_t											_maxlen;
+		lemon_system* system() { return _system; }
 
-		int												_flags;
+		void close_msg(void *msg);
 
-		msg_queue										_Q;
+		virtual bool send(lemon_actor * actor,void * msg,int flags, size_t timeout) = 0;
 
-		recv_queue										_recvQ;
+		virtual void* recv(lemon_actor * actor, int flags, size_t timeout) = 0;
+
+	private:
+
+		lemon_system											*_system;
+
+		int														_counter;
+
+		lemon_msg_close_f										_f;
+
+		void													*_userdata;
 	};
-	
+
+	//////////////////////////////////////////////////////////////////////////
+
+	//////////////////////////////////////////////////////////////////////////
+	class lemon_push_channel : public lemon_channel
+	{
+	public:
+		struct lemon_msg
+		{
+			lemon_t												source;
+
+			void												*userdata;
+		};
+
+		typedef std::list<lemon_msg>							export_queue;
+
+		typedef std::list<lemon_t>								import_queue;
+
+
+		lemon_push_channel(lemon_system* sysm,size_t maxlen, lemon_msg_close_f f,void * userdata);
+
+		~lemon_push_channel();
+
+		bool send(lemon_actor * actor,void * msg,int flags, size_t timeout);
+
+		void* recv(lemon_actor * actor, int flags, size_t timeout);
+
+	private:
+
+		std::mutex												_mutex;
+
+		size_t													_length;
+
+		export_queue											_export;
+
+		import_queue											_import;
+	};
+
 }}
+
 #endif //LEMON_KERNEL_CHANNEL_HPP

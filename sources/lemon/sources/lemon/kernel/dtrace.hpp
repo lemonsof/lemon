@@ -16,11 +16,10 @@
 #include <stdarg.h>
 #include <lemon/abi.h>
 #include <unordered_map>
-#include <lemonxx/dtrace.hpp>
 #include <condition_variable>
 #include <lemonxx/nocopyable.hpp>
 
-namespace lemon{namespace impl{
+namespace lemon{namespace kernel{
 
 	struct lemon_trace_msg
 	{
@@ -96,9 +95,18 @@ namespace lemon{namespace impl{
 
 		~lemon_trace_system();
 
-		void trace(lemon_t source,dtrace::level level, const char * fmt,va_list arg);
+		void trace(int level,lemon_t source,const char * fmt,...)
+		{
+			va_list args;
 
-		bool status(dtrace::level level);
+			va_start(args,fmt);
+
+			trace(source,level, fmt,args);
+		}
+
+		void trace(lemon_t source,int level, const char * fmt,va_list args);
+
+		bool status(int level);
 
 		void freemsg(lemon_trace_msg * msg);
 
@@ -114,7 +122,7 @@ namespace lemon{namespace impl{
 
 	private:
 
-		lemon_trace_t												_seq;
+		uintptr_t												_seq;
 
 		traces_t												_traces;
 

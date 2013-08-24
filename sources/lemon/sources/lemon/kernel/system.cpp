@@ -1,15 +1,21 @@
-#include <cassert>
+#include <thread>
 #include <lemon/kernel/system.hpp>
 
-namespace lemon{namespace impl{
+namespace lemon{namespace kernel{
 
 	lemon_system::lemon_system(size_t maxcoros,size_t maxchannels)
-		:_seq(1)
+		:_maxcoros(maxcoros)
+		,_maxchannels(maxchannels)
 		,_exit(false)
-		,_maxcoros(maxcoros?maxcoros:LEMON_MAX_COROS)
-		,_maxchannels(maxchannels?maxchannels:LEMON_MAX_CHANNELS)
+		,_seq(0)
 	{
+		_mainActor.set_system(this);
+
 		_timewheel.start(this);
+
+		_actorSystem.start(this);
+
+		_extensionSystem.start(this);
 
 		_channelSystem.start(this);
 
@@ -23,12 +29,35 @@ namespace lemon{namespace impl{
 
 	lemon_system::~lemon_system()
 	{
-		//TODO: add exit function
+		stop();
+
+		join();
 
 		for(auto q : _runqs)
 		{
 			delete q;
 		}
+
+		lemon_context_t context;
+
+		lemon_log_debug(_traceSystem,_mainActor,"lemon exit dispatch ...");
+
+		for(auto id : _actors)
+		{
+			auto actor = lemon_actor::from(id);
+
+			actor->kill();
+
+			actor->parent_reset(&context);
+
+			lemon_context_jump(&context,*actor,(intptr_t)actor);
+
+			assert(actor->exited());
+
+			_actorSystem.close(actor);
+		}
+
+		lemon_log_debug(_traceSystem,_mainActor,"lemon exit dispatch -- success");
 	}
 
 	void lemon_system::join()
@@ -38,13 +67,12 @@ namespace lemon{namespace impl{
 			q->join();
 		}
 
-		_extensionSystem.stop();
-
 		_timewheel.join();
 	}
 
-	void lemon_system::stop() 
+	void lemon_system::stop()
 	{
+
 		{
 			std::unique_lock<std::mutex> lock(_activeActorsMutex);
 
@@ -56,10 +84,36 @@ namespace lemon{namespace impl{
 
 		_channelSystem.stop();
 
+		_extensionSystem.stop();
+
 		_timewheel.stop();
 	}
 
-	lemon_actor* lemon_system::dispatch()
+	lemon_t lemon_system::go(lemon_t source,lemon_f f, void * userdata,size_t stacksize)
+	{
+		lemon_actor *actor = nullptr;
+
+		{
+			std::unique_lock<std::mutex> lock(_actorsMutex);
+
+			actor = _actorSystem.create(source,f,userdata,stacksize);
+
+			_actors.insert(*actor);
+		}
+
+
+		assert(actor);
+
+		std::unique_lock<std::mutex> lock(_activeActorsMutex);
+
+		_activeActors.push_back(actor);
+
+		_condition.notify_one();
+
+		return *actor;
+	}
+
+	lemon_actor* lemon_system::dispatch_one()
 	{
 		lemon_actor* actor = nullptr;
 
@@ -78,7 +132,7 @@ namespace lemon{namespace impl{
 
 			actor = _activeActors.front();
 
-			_activeActors.pop();
+			_activeActors.pop_front();
 
 			return actor;
 		}
@@ -86,168 +140,121 @@ namespace lemon{namespace impl{
 		return actor;
 	}
 
-	void lemon_system::kill_dispatch(basic_lemon_runq * runq)
-	{
-		for(auto a : _actors)
-		{
-			auto actor = a.second;
-
-			actor->Q = runq;
-
-			actor->Exit |= (int)exit_status::killed;
-
-			if(actor->Mutex.mutex) actor->Mutex.lock(actor->Mutex.mutex);
-
-			lemon_context_jump(runq->context(),actor->Context,(intptr_t)actor);
-
-			assert(actor->Exit & (int)exit_status::exited);
-
-			_actorFactory.close(actor);
-		}
-
-		_actors.clear();
-	}
-
-	lemon_t lemon_system::go(lemon_state S,lemon_f f, void * userdata,size_t stacksize)
-	{
-		lemon_actor *actor = nullptr;
-
-		{
-			std::unique_lock<std::mutex> lock(_actorMutex);
-
-			for(;;)
-			{
-				lemon_t id = _seq ++ ;
-
-				if(id != LEMON_MAIN_ACTOR_ID && id != LEMON_INVALID_HANDLE && _actors.find(id) == _actors.end())
-				{
-					actor = _actorFactory.create(S,id,f,userdata,stacksize);
-
-					_actors[id] = actor;
-
-					break;
-				}
-			}
-		}
-
-		
-		assert(actor);
-
-		std::unique_lock<std::mutex> lock(_activeActorsMutex);
-
-		_activeActors.push(actor);
-
-		_condition.notify_one();
-
-		return actor->Id;
-	}
-
-
 	void lemon_system::wait_or_kill(lemon_actor * actor)
 	{
-		if(actor->Exit & (int)exit_status::exited)
+		if(actor->exited())
 		{
-			std::unique_lock<std::mutex> lock(_actorMutex);
+			std::unique_lock<std::mutex> lock(_actorsMutex);
 
-			_actors.erase(actor->Id);
+			_actors.erase(*actor);
 
-			_actorFactory.close(actor);
+			_actorSystem.close(actor);
 
 			return;
 		}
 
-		if(actor->Exit & (int)exit_status::killed)
+		if(actor->killed())
 		{
 			std::unique_lock<std::mutex> lock(_activeActorsMutex);
 
-			_activeActors.push(actor);
+			_activeActors.push_back(actor);
 
 			_condition.notify_one();
 
 			return;
 		}
 
+		
+		
+		try
 		{
 			std::unique_lock<std::mutex> lock(_waitingActorsMutex);
 
-			assert(_waitingActors.find(actor->Id) == _waitingActors.end());
-
-			_waitingActors[actor->Id] = actor;
-
-			if(actor->Mutex.mutex) 
+			if(actor->timeout() != lemon_infinite)
 			{
-				actor->Mutex.unlock(actor->Mutex.mutex);
-
-				lemon_log_debug((lemon_state)actor,"unlock ...");
+				_timewheel.create_timer(*actor,actor->timeout());
 			}
-		}
 
-		try
-		{
-			if(actor->Timeout != LEMON_INFINITE)
-			{
-				_timewheel.create_timer(actor->Id,actor->Timeout);
-			}
+			//no throw promise
+			assert(_waitingActors.count(*actor) == 0);
+
+			_waitingActors.insert(*actor);
+
+			actor->unlock();
 
 		}
-		catch(const lemon_errno_info&)
+		catch(const lemon_errno_info& e)
 		{
-			{
-				std::unique_lock<std::mutex> lock(_waitingActorsMutex);
+			lemon_log_error(_traceSystem,*actor,"create waiting timer failed !!!");
 
-				_waitingActors.erase(actor->Id);
-			}
+			actor->lasterror_reset(e);
 
-			{
-				std::unique_lock<std::mutex> lock(_activeActorsMutex);
+			std::unique_lock<std::mutex> lock(_activeActorsMutex);
 
-				_activeActors.push(actor);
+			_activeActors.push_back(actor);
 
-				_condition.notify_one();
-			}
-
-			lemon_raise_trace((lemon_state)actor);
+			_condition.notify_one();
 		}
 	}
 
-	bool lemon_system::notify(lemon_t target, const lemon_event_t * waitlist, size_t len)
+	bool lemon_system::notify_timeout(lemon_t target)
 	{
-		lemon_actor * actor = nullptr;
+		lemon_actor * actor = lemon_actor::from(target);
 
 		{
 			std::unique_lock<std::mutex> lock(_waitingActorsMutex);
 
-			auto iter = _waitingActors.find(target);
+			if(_waitingActors.count(target) == 0) return false;
 
-			if(iter == _waitingActors.end()) return false;
+			actor->notified_reset();
 
-			actor = iter->second;
+			_waitingActors.erase(target);
+		}
 
-			assert(actor->WaitResult == LEMON_INVALID_HANDLE);
 
-			for(size_t i = 0; i < len; ++ i)
+		std::unique_lock<std::mutex> lock(_activeActorsMutex);
+
+		_activeActors.push_back(actor);
+
+		_condition.notify_one();
+
+		return true;
+	}
+
+	bool lemon_system::notify(lemon_t target,const const_buff<lemon_event_t> & events)
+	{
+
+		lemon_actor * actor = lemon_actor::from(target);
+
+		{
+			std::unique_lock<std::mutex> lock(_waitingActorsMutex);
+
+			if(_waitingActors.count(target) == 0) return false;
+
+			assert(actor->notified() == LEMON_INVALID_HANDLE(lemon_event_t));
+
+
+			for(size_t i = 0; i < events.length; ++ i)
 			{
-				for(size_t j = 0; j < actor->Waits; j ++ )
+				for(size_t j = 0; j < actor->events().length; j ++ )
 				{
-					if(waitlist[i] == actor->WaitList[j])
+					if(events.buff[i] == actor->events().buff[j])
 					{
-						actor->WaitResult = waitlist[i];
+						actor->notified_reset(j);
 
-						_waitingActors.erase(iter);
+						_waitingActors.erase(target);
 
 						break;
 					}
 				}
 			}
-
 		}
-		
 
-		if(actor->WaitResult  != LEMON_INVALID_HANDLE)
+		if(actor->notified() != LEMON_INVALID_HANDLE(lemon_event_t))
 		{
 			std::unique_lock<std::mutex> lock(_activeActorsMutex);
 
-			_activeActors.push(actor);
+			_activeActors.push_back(actor);
 
 			_condition.notify_one();
 
@@ -257,33 +264,4 @@ namespace lemon{namespace impl{
 		return false;
 	}
 
-	bool lemon_system::notify_timeout(lemon_t target)
-	{
-		lemon_actor * actor = nullptr;
-
-		{
-			std::unique_lock<std::mutex> lock(_waitingActorsMutex);
-
-			auto iter = _waitingActors.find(target);
-
-			if(iter == _waitingActors.end()) return false;
-
-			if(iter->second->Timeout == LEMON_INFINITE) return false;
-
-			actor = iter->second;
-
-			actor->WaitResult = LEMON_INVALID_HANDLE;
-
-			_waitingActors.erase(iter);
-		}
-
-		std::unique_lock<std::mutex> lock(_activeActorsMutex);
-
-		_activeActors.push(actor);
-
-		_condition.notify_one();
-
-		return true;
-	}
 }}
-

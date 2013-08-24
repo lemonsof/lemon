@@ -12,7 +12,9 @@
 #include <lemon/abi.h>
 #include <lemonxx/nocopyable.hpp>
 
-namespace lemon{namespace impl{
+namespace lemon{namespace kernel{
+
+	class lemon_system;
 
 	class lemon_extension_system : private nocopyable
 	{
@@ -28,17 +30,21 @@ namespace lemon{namespace impl{
 
 		~lemon_extension_system();
 
+		void start(lemon_system * sysm) { _system = sysm; }
+
 		void stop();
 
-		void new_extension(lemon_state S,const lemon_extension_vtable * vtable, void * userdata);
+		void new_extension(lemon_t source,const lemon_extension_vtable * vtable, void * userdata);
 
-		void * get_extension(lemon_state S,lemon_extension_t id);
+		void * get_extension(lemon_t source,lemon_extension_t id);
 
 	private:
 
 		size_t hash(lemon_extension_t id);
 
 	private:
+
+		lemon_system									*_system;
 
 		std::mutex										_mutex;
 				

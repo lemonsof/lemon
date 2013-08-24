@@ -4,101 +4,136 @@
 * @brief    Copyright (C) 2013  yayanyang All Rights Reserved 
 * @author   yayanyang
 * @version  1.0.0.0  
-* @date     2013/08/20
+* @date     2013/08/24
 */
 #ifndef LEMONXX_CHANNEL_HPP
 #define LEMONXX_CHANNEL_HPP
+#include <algorithm>
 #include <lemon/abi.h>
-#include <lemonxx/actor.hpp>
 #include <lemonxx/nocopyable.hpp>
+
 namespace lemon{
 
-	class channel : private nocopyable
+	class channel 
 	{
 	public:
-		enum 
-		{
-			send_noblock = LEMON_SEND_NOBLOCK ,
-
-			recv_noblock = LEMON_RECV_NOBLOCK,
-
-			mult_recv = LEMON_MULTI_RECV,
-
-			send_op = LEMON_CHANNEL_SEND,
-
-			recv_op = LEMON_CHANNEL_RECV
-		};
-
-		channel(actor& S,lemon_channel_t handle):_S(S),_handle(handle)
+		channel(lemon_state S,lemon_channel_t id):_S(S),_channel(id)
 		{
 
 		}
 
-		channel(actor& S,lemon_msg_close_f f,size_t maxlen, int flags):_S(S)
+		channel(lemon_state S, int type,size_t maxlen,lemon_msg_close_f f,void * userdata):_S(S)
 		{
-			_handle = lemon_make_channel(S,f,maxlen,flags);
+			_channel = lemon_new_channel(_S,type,maxlen,f,userdata);
 
-			_S.check_throw();
+			lemon_check_throw(S);
 		}
 
-		channel(actor& S,size_t maxlen, int flags):_S(S)
+		channel(lemon_state S, int type,lemon_msg_close_f f,void * userdata):_S(S)
 		{
-			_handle = lemon_make_channel(S,nullptr,maxlen,flags);
+			_channel = lemon_new_channel(_S,type,size_t(-1),f,userdata);
 
-			_S.check_throw();
+			lemon_check_throw(S);
 		}
 
-		channel(actor& S):_S(S)
+		channel(lemon_state S, int type,lemon_msg_close_f f):_S(S)
 		{
-			_handle = lemon_make_channel(S,nullptr,size_t(-1),0);
+			_channel = lemon_new_channel(_S,type,size_t(-1),f,nullptr);
 
-			_S.check_throw();
+			lemon_check_throw(S);
+		
 		}
 
-		void send(void * data)
+		channel(lemon_state S, int type):_S(S)
 		{
-			lemon_send(_S,_handle,data);
+			_channel = lemon_new_channel(_S,type,size_t(-1),nullptr,nullptr);
 
-			_S.check_throw();
+			lemon_check_throw(S);
+		}
+
+		~channel()
+		{
+			if(!empty()) lemon_close_channel(_S,_channel);
+		}
+
+		bool empty() const
+		{
+			return _channel == LEMON_INVALID_HANDLE(lemon_channel_t);
+		}
+
+		lemon_channel_t release()
+		{
+			lemon_channel_t result = _channel;
+
+			_channel = LEMON_INVALID_HANDLE(lemon_channel_t);
+
+			return result;
+		}
+
+		void swap(channel & rhs)
+		{
+			std::swap(_channel,rhs._channel);
+		}
+
+		channel& operator = (lemon_channel_t id)
+		{
+			channel(_S,id).swap(*this);
+
+			return *this;
+		}
+
+		operator lemon_channel_t() const
+		{
+			return _channel;
 		}
 
 		void* recv()
 		{
-			void * block = lemon_recv(_S,_handle);
+			void * data = lemon_recv(_S,_channel,0);
 
-			_S.check_throw();
+			lemon_check_throw(_S);
 
-			return block;
+			return data;
 		}
 
-		void close(lemon_state S)
+		void* recv(int flags)
 		{
-			lemon_close_channel(S,_handle);
+			void * data = lemon_recv(_S,_channel,flags);
+
+			lemon_check_throw(_S);
+
+			return data;
 		}
 
-		operator lemon_state (){ return _S; }
+		void send(void * data)
+		{
+			lemon_send(_S,_channel,data,0);
 
-		operator lemon_channel_t () { return _handle; }
+			lemon_check_throw(_S);
+		}
+
+		void send(void * data,int flags)
+		{
+			lemon_send(_S,_channel,data,flags);
+
+			lemon_check_throw(_S);
+		}
+
+		void send_noblock(void * data)
+		{
+			lemon_send(_S,_channel,data,0,0);
+
+			lemon_check_throw(_S);
+		}
 
 	private:
 
-		actor											&_S;
+		lemon_state										_S;	
 
-		lemon_channel_t									_handle;
+		lemon_channel_t									_channel;
 	};
 
-	class scope_channel : public channel
-	{
-	public:
-		scope_channel(actor& S,lemon_channel_t handle):channel(S,handle)
-		{
-
-		}
-
-		~scope_channel()
-		{
-			close(*this);
-		}
-	};
+	
 }
+
 #endif //LEMONXX_CHANNEL_HPP

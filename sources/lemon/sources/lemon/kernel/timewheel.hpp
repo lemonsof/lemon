@@ -16,7 +16,7 @@
 #include <lemonxx/nocopyable.hpp>
 
 
-namespace lemon{namespace impl{
+namespace lemon{namespace kernel{
 
 	class lemon_system;
 

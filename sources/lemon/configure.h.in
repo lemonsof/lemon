@@ -73,7 +73,7 @@ typedef ${UINT64_T} lemon_uint64_t;
 #else 
 
 #ifdef WIN32
-typedef LONG _Bool
+typedef  LONG  _Bool
 #endif //WIN32
 
 #define bool _Bool

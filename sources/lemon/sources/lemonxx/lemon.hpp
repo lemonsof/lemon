@@ -13,6 +13,6 @@
 #include <lemonxx/actor.hpp>
 #include <lemonxx/dtrace.hpp>
 #include <lemonxx/channel.hpp>
-#include <lemonxx/error_info.hpp>
+
 
 #endif //LEMON_HPP
