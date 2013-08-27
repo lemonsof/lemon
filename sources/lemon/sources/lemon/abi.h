@@ -116,7 +116,8 @@
 #define LEMON_CHANNEL_EXPORT						0x01
 #define LEMON_CHANNEL_IMPORT						0x02
 
-
+#define LEMON_MSG_CLOSE								0x01
+#define LEMON_MSG_CLONE								0x02
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -129,7 +130,7 @@ LEMON_DECLARE_HANDLE								(lemon_channel_t);
 LEMON_DECLARE_HANDLE								(lemon_extension_t);
 
 typedef void										(*lemon_f)(lemon_state self,void * userdata);
-typedef void										(*lemon_msg_close_f)(lemon_state S,void * msg);
+typedef void*										(*lemon_msg_f)(lemon_state S,int flag,void * msg);
 typedef void										(*lemon_trace_f)(void * userdata, int level, lemon_int64_t timestamp,lemon_t source, const char * msg);
 
 //////////////////////////////////////////////////////////////////////////
@@ -229,7 +230,7 @@ LEMON_API lemon_event_t lemon_wait(lemon_state self,const lemon_mutext_t * mutex
 LEMON_API bool lemon_notify(lemon_state sel,lemon_t target, const lemon_event_t * waitlist, size_t len);
 
 //////////////////////////////////////////////////////////////////////////
-LEMON_API lemon_channel_t lemon_new_channel(lemon_state S, int type,size_t maxlen,lemon_msg_close_f f,void * userdata);
+LEMON_API lemon_channel_t lemon_new_channel(lemon_state S, int type,size_t maxlen,lemon_msg_f f,void * userdata);
 
 LEMON_API void lemon_close_channel(lemon_state S, lemon_channel_t channel);
 

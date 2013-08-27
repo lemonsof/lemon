@@ -263,7 +263,7 @@ LEMON_API void lemon_new_extension(lemon_state self, const lemon_extension_vtabl
 }
 
 
-LEMON_API lemon_channel_t lemon_new_channel(lemon_state S, int type,size_t maxlen,lemon_msg_close_f f,void * userdata)
+LEMON_API lemon_channel_t lemon_new_channel(lemon_state S, int type,size_t maxlen,lemon_msg_f f,void * userdata)
 {
 	lemon_actor * actor = reinterpret_cast<lemon_actor*>(S);
 

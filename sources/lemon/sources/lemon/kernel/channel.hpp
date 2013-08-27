@@ -11,6 +11,7 @@
 #include <list>
 #include <mutex>
 #include <lemon/abi.h>
+#include <unordered_map>
 #include <lemonxx/nocopyable.hpp>
 
 namespace lemon{namespace kernel{
@@ -23,7 +24,7 @@ namespace lemon{namespace kernel{
 	{
 	protected:
 
-		lemon_channel(lemon_system* sysm,lemon_msg_close_f f,void * userdata);
+		lemon_channel(lemon_system* sysm,lemon_msg_f f,void * userdata);
 
 		virtual ~lemon_channel(){}
 
@@ -79,6 +80,8 @@ namespace lemon{namespace kernel{
 
 		void close_msg(void *msg);
 
+		void* clone_msg(void *msg);
+
 		virtual bool send(lemon_actor * actor,void * msg,int flags, size_t timeout) = 0;
 
 		virtual void* recv(lemon_actor * actor, int flags, size_t timeout) = 0;
@@ -89,7 +92,7 @@ namespace lemon{namespace kernel{
 
 		int														_counter;
 
-		lemon_msg_close_f										_f;
+		lemon_msg_f												_f;
 
 		void													*_userdata;
 	};
@@ -112,7 +115,7 @@ namespace lemon{namespace kernel{
 		typedef std::list<lemon_t>								import_queue;
 
 
-		lemon_push_channel(lemon_system* sysm,size_t maxlen, lemon_msg_close_f f,void * userdata);
+		lemon_push_channel(lemon_system* sysm,size_t maxlen, lemon_msg_f f,void * userdata);
 
 		~lemon_push_channel();
 
@@ -129,6 +132,104 @@ namespace lemon{namespace kernel{
 		export_queue											_export;
 
 		import_queue											_import;
+	};
+
+	//////////////////////////////////////////////////////////////////////////
+
+	class lemon_publish_channel : public lemon_channel
+	{
+	public:
+
+		struct lemon_msg
+		{
+			lemon_t												target;
+
+			void												**userdata;
+
+		};
+
+		typedef std::list<lemon_msg>							import_queue;
+
+		lemon_publish_channel(lemon_system* sysm,size_t maxlen, lemon_msg_f f,void * userdata);
+
+		~lemon_publish_channel();
+
+		bool send(lemon_actor * actor,void * msg,int flags, size_t timeout);
+
+		void* recv(lemon_actor * actor, int flags, size_t timeout);
+
+	private:
+		size_t													_maxlen;
+
+		lemon_t													_current;
+
+		std::mutex												_mutex;
+
+		import_queue											_import;
+	};
+
+	//////////////////////////////////////////////////////////////////////////
+
+	class lemon_request_channel : public lemon_channel
+	{
+	public:
+
+		struct lemon_request
+		{
+			size_t												id;
+
+			lemon_t												source;
+
+			void												*userdata;
+
+		};
+
+		struct lemon_response
+		{
+			size_t												id;
+
+			void												*userdata;
+		};
+
+		typedef std::unordered_map<lemon_t, lemon_response>		response_map;
+
+		typedef std::list<lemon_request>						import_queue;
+
+		//only one receiver
+
+		lemon_request_channel(lemon_system* sysm,size_t maxlen, lemon_msg_f f,void * userdata);
+
+		~lemon_request_channel();
+
+		bool send(lemon_actor * actor,void * msg,int flags, size_t timeout);
+
+		void* recv(lemon_actor * actor, int flags, size_t timeout);
+
+	private:
+
+		bool send_import(lemon_actor * actor, void * msg, int flags, size_t timeout);
+
+		void* recv_import(lemon_actor * actor, int flags, size_t timeout);
+
+		bool send_export(lemon_actor * actor, void * msg, int flags, size_t timeout);
+
+		void* recv_export(lemon_actor * actor, int flags, size_t timeout);
+
+	private:
+
+		size_t													_id;
+
+		std::mutex												_mutex;
+
+		size_t													_maxlen;
+
+		lemon_t													_responder;
+
+		lemon_request											_currentMsg;
+
+		response_map											_response_map;
+
+		import_queue											_improt;
 	};
 
 }}

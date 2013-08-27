@@ -42,6 +42,10 @@ assembly =
 	   };
 
 	   {
+			name = "CHANNEL_CLOSING";
+	   };
+
+	   {
 			name = "MULIT_RECV_EXCEPTION";
 	   };
 

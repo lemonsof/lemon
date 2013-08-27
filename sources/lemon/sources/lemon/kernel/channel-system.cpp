@@ -26,7 +26,7 @@ namespace lemon{namespace kernel{
 		_channels.clear();
 	}
 
-	lemon_channel_t lemon_channel_system::make_channel(lemon_t /*source*/,int type,size_t maxlen,lemon_msg_close_f f,void * userdata)
+	lemon_channel_t lemon_channel_system::make_channel(lemon_t /*source*/,int type,size_t maxlen,lemon_msg_f f,void * userdata)
 	{
 		lemon_channel * channel = nullptr;
 

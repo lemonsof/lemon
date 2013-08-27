@@ -22,21 +22,21 @@ namespace lemon{
 
 		}
 
-		channel(lemon_state S, int type,size_t maxlen,lemon_msg_close_f f,void * userdata):_S(S)
+		channel(lemon_state S, int type,size_t maxlen,lemon_msg_f f,void * userdata):_S(S)
 		{
 			_channel = lemon_new_channel(_S,type,maxlen,f,userdata);
 
 			lemon_check_throw(S);
 		}
 
-		channel(lemon_state S, int type,lemon_msg_close_f f,void * userdata):_S(S)
+		channel(lemon_state S, int type,lemon_msg_f f,void * userdata):_S(S)
 		{
 			_channel = lemon_new_channel(_S,type,size_t(-1),f,userdata);
 
 			lemon_check_throw(S);
 		}
 
-		channel(lemon_state S, int type,lemon_msg_close_f f):_S(S)
+		channel(lemon_state S, int type,lemon_msg_f f):_S(S)
 		{
 			_channel = lemon_new_channel(_S,type,size_t(-1),f,nullptr);
 
