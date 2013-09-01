@@ -41,7 +41,7 @@ namespace lemon{namespace kernel{
 
 		typedef std::vector<lemon_runq*>					runqs_t;
 
-		lemon_system(size_t maxcoros,size_t maxchannels);
+		lemon_system(size_t maxcoros,size_t maxchannels,size_t stacksize);
 
 		~lemon_system();
 
@@ -53,7 +53,9 @@ namespace lemon{namespace kernel{
 
 	public:
 
-		lemon_actor * main_actor() { return &_mainActor; }
+		lemon_actor * main_actor() { return _mainRunq; }
+
+		lemon_man_runq* main_runq() { return &_mainRunq;} 
 
 		lemon_trace_system  & trace_system(){ return _traceSystem; }
 
@@ -78,11 +80,19 @@ namespace lemon{namespace kernel{
 
 	private:
 
+		std::mutex											_waitingActorsMutex;
+
+		std::condition_variable								_condition;
+
+		std::mutex											_activeActorsMutex;
+
+		std::mutex											_actorsMutex;
+
 		size_t												_maxcoros;
 		
 		size_t												_maxchannels;
 
-		lemon_actor											_mainActor;
+		lemon_man_runq										_mainRunq;
 
 		bool												_exit;
 
@@ -97,18 +107,10 @@ namespace lemon{namespace kernel{
 		lemon_extension_system								_extensionSystem;
 
 		lemon_channel_system								_channelSystem;
-
-		std::condition_variable								_condition;
-
-		std::mutex											_actorsMutex;
-
+		
 		actors_type											_actors;
 
-		std::mutex											_activeActorsMutex;
-
 		actors_queue_type									_activeActors;
-
-		std::mutex											_waitingActorsMutex;
 
 		actors_type											_waitingActors;
 

@@ -124,6 +124,11 @@ namespace lemon{namespace kernel{
 			_killed = true;
 		}
 
+		void kill_reset()
+		{
+			_killed = false;
+		}
+
 		bool killed() const;
 
 		void exit()

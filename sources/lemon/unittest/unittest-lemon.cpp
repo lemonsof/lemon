@@ -7,6 +7,15 @@ namespace lemon{namespace {
 
 	class lemon_unittest{};
 
+	LEMON_UNITTEST_CASE(lemon_unittest,main_actor_wait_test)
+	{
+		system sysm;
+
+		dtrace::open_console(sysm,LEMON_TRACE_ALL);
+
+		sysm.sleep(1000);
+	}
+
 	LEMON_UNITTEST_CASE(lemon_unittest,main_actor_notify_test)
 	{
 		system sysm;

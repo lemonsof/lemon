@@ -203,7 +203,7 @@ namespace lemon{namespace kernel{
 	{
 		for (auto msg : _import)
 		{
-			close_msg(msg.userdata);
+			//close_msg(*msg.userdata);
 
 			assert(msg.target != LEMON_INVALID_HANDLE(lemon_t));
 
@@ -231,7 +231,12 @@ namespace lemon{namespace kernel{
 
 			if (_import.empty())
 			{
-				if (timeout == 0) return false;
+				if (timeout == 0)
+				{
+					close_msg(msg);
+
+					return false;
+				}
 
 				_current = *actor;
 
@@ -342,7 +347,19 @@ namespace lemon{namespace kernel{
 			throw errorCode;
 		}
 
-		if (evt == LEMON_INVALID_HANDLE(lemon_event_t)) return nullptr;
+		if(actor->killed())
+		{
+			if(userdata) close_msg(userdata);
+		}
+
+		if (evt == LEMON_INVALID_HANDLE(lemon_event_t))
+		{
+			
+			if(userdata) close_msg(userdata);
+
+			return nullptr;
+
+		}
 
 		return userdata;
 	}
@@ -350,14 +367,34 @@ namespace lemon{namespace kernel{
 	////////////////////////////////////////////////////////////////////////////////////////
 
 	lemon_request_channel::lemon_request_channel(lemon_system* sysm, size_t maxlen, lemon_msg_f f, void * userdata)
-		: lemon_channel(sysm, f, userdata), _maxlen(maxlen)
+		: lemon_channel(sysm, f, userdata), _maxlen(maxlen),_responder(LEMON_INVALID_HANDLE(lemon_t))
 	{
-
+		_currentMsg.source = LEMON_INVALID_HANDLE(lemon_t);
 	}
 
 	lemon_request_channel::~lemon_request_channel()
 	{
+		for(auto msg : _improt)
+		{
+			clone_msg(msg.userdata);
 
+			assert(msg.source != LEMON_INVALID_HANDLE(lemon_t));
+
+			lemon_event_t events [] = { close_event() };
+
+			system()->notify(msg.source, cbuff(events));
+		}
+
+		for(auto msg : _response_map)
+		{
+			if(msg.second.userdata) clone_msg(msg.second.userdata);
+
+			assert(msg.second.source != LEMON_INVALID_HANDLE(lemon_t));
+
+			lemon_event_t events [] = { close_event() };
+
+			system()->notify(msg.second.source, cbuff(events));
+		}
 	}
 
 	bool lemon_request_channel::send(lemon_actor * actor, void * msg, int flags, size_t timeout)
@@ -425,7 +462,7 @@ namespace lemon{namespace kernel{
 		{
 			lemon_request request = { _id++, *actor, msg };
 
-			lemon_response response = { request.id, nullptr };
+			lemon_response response = { request.id,*actor, nullptr };
 
 			_response_map[*actor] = response;
 
@@ -518,7 +555,11 @@ namespace lemon{namespace kernel{
 
 			assert(iter != _response_map.end());
 
-			return iter->second.userdata;
+			void * userdata = iter->second.userdata;
+
+			_response_map.erase(iter);
+
+			return userdata;
 		}
 
 		return nullptr;
@@ -617,6 +658,8 @@ namespace lemon{namespace kernel{
 
 			throw errorCode;
 		}
+
+		_responder = *actor;
 
 		if (_improt.empty())
 		{

@@ -14,9 +14,13 @@ namespace lemon{namespace kernel{
 	}
 
 
-	void lemon_runq::join()
+	bool lemon_runq::join()
 	{
+		if(std::this_thread::get_id() == _worker.get_id()) return false;
+
 		if(_worker.joinable()) _worker.join();
+
+		return true;
 	}
 
 	void lemon_runq::proc()
@@ -36,4 +40,9 @@ namespace lemon{namespace kernel{
 			_sysm->wait_or_kill(actor);
 		}
 	}
+
+	//////////////////////////////////////////////////////////////////////////
+
+
+	
 }}

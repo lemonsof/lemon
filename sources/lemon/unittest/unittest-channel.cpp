@@ -5,110 +5,189 @@ namespace lemon{namespace {
 
 	class channel_unittest{};
 
-	LEMON_UNITTEST_CASE(channel_unittest,push_block_flags_test)
+	void __test()
 	{
 		system sysm;
 
-		dtrace::open_console(sysm,LEMON_TRACE_ALL);
+		dtrace::open_console(sysm,LEMON_TRACE_VERBOSE);
 
-		channel chan(sysm,LEMON_CHANNEL_PUSH);
+		auto chan = channel_req_t::make(sysm);
 
-		lemon_channel_t id = chan;
+		unique_channel scope_channel(sysm,chan);
 
-		sysm.go([=](actor self){
+		sysm.go([chan](actor self){
 
-			channel chan(self,id);
-
-			lemon_expect_exception(chan.recv(LEMON_CHANNEL_EXPORT),lemon_errno_info);
-		});
-
-		sysm.go([=](actor self){
-
-			channel chan(self,id);
-
-			lemon_expect_exception(chan.send(nullptr,LEMON_CHANNEL_IMPORT),lemon_errno_info);
-
-			self.stop();
-		});
-
-
-		sysm.join();
-	}
-
-	LEMON_UNITTEST_CASE(channel_unittest,push_block_test)
-	{
-		system sysm;
-
-		dtrace::open_console(sysm,LEMON_TRACE_TEXT);
-
-		channel chan(sysm,LEMON_CHANNEL_PUSH);
-
-		channel chan2(sysm,LEMON_CHANNEL_PUSH);
-
-		lemon_channel_t id = chan;
-
-		lemon_channel_t id2 = chan2;
-
-		int workers = 100;
-
-		int loop = 10;
-
-		sysm.go([=](actor self){
-
-			channel chan(self,id);
-
-			for(int i = 0; i < workers * loop; ++ i)
+			for(size_t  i = 0; i < 1000; ++ i)
 			{
-				lemon_log_debug(self,"manager send %d",i);
+				lemon_log_text(self,"server recv .........");
 
-				chan.send_noblock(nullptr);
+				int * counter = (int*)recv(self,chan,LEMON_CHANNEL_EXPORT);
 
-				lemon_log_debug(self,"manager send %d -- success",i);
-			}
+				lemon_log_text(self,"server recv (%d)",*counter);
 
-			lemon_log_text(self,"manager send finish");
+				(*counter) ++;
 
-			chan.release();
-		});
+				send(self,chan,counter,LEMON_CHANNEL_EXPORT);
 
-		sysm.go([=](actor self){
-
-			channel chan2(self,id2);
-
-			for(int i = 0; i < workers * loop; ++ i)
-			{
-				lemon_log_debug(self,"reduce recv %d",i);
-
-				chan2.recv();
-
-				lemon_log_debug(self,"reduce recv %d -- success",i);
+				lemon_log_text(self,"server send .........");
 			}
 
 			self.stop();
 		});
 
-	
-
-		for(int i = 0; i < workers; ++ i)
+		for(size_t i = 0; i < 10; ++ i)
 		{
-			sysm.go([=](actor self){
 
-				channel chan(self,id);
+			sysm.go([chan](actor self){
 
-				channel chan2(self,id2);
+				int counter = 0;
 
 				for(;;)
 				{
-					chan.recv();
+					lemon_log_text(self,"client send (%d)",counter);
 
-					lemon_log_verbose(self,"worker(%p) recv",(lemon_state)self);
+					send(self,chan,&counter,LEMON_CHANNEL_IMPORT,0);
 
-					chan2.send_noblock(nullptr);
+					lemon_check(&counter == recv(self,chan,LEMON_CHANNEL_IMPORT));
+
+					lemon_log_text(self,"client recv (%d)",counter);
 				}
 			});
+
 		}
+
+
+
+		sysm.join();
+
+		lemon_log_verbose(sysm,"exit the lemon system ...");
+	}
+
+	LEMON_UNITTEST_CASE(channel_unittest,request_test)
+	{
+		__test();
+	}
+	
+
+	LEMON_UNITTEST_CASE(channel_unittest,request_timeout_test)
+	{
+		system sysm;
+
+		dtrace::open_console(sysm,LEMON_TRACE_VERBOSE);
+
+		auto chan = channel_req_t::make(sysm);
+
+		unique_channel scope_channel(sysm,chan);
+
+		sysm.go([chan](actor self){
+
+			int counter = 0;
+
+			send(self,chan,&counter,LEMON_CHANNEL_IMPORT,0);
+
+			lemon_log_text(self,"client recv");
+
+			lemon_check(recv(self,chan,LEMON_CHANNEL_IMPORT,1000)  == nullptr);
+
+			lemon_log_text(self,"client recv timeout ");
+
+			self.stop();
+		});
 
 		sysm.join();
 	}
+
+	LEMON_UNITTEST_CASE(channel_unittest,push_test)
+	{
+		system sysm;
+
+		//dtrace::open_console(sysm,LEMON_TRACE_ALL);
+
+		auto chan = channel_push_t::make(sysm);
+
+		unique_channel scope_channel(sysm,chan);
+
+		for(size_t i = 0; i < 10; ++ i)
+		{
+
+			sysm.go([chan](actor self){
+
+				for(int i = 0;; ++i)
+				{
+					recv(self,chan);
+
+					lemon_log_text(self,"client recv (%d)",i);
+				}
+			});
+
+		}
+
+		for(size_t  i = 0; i < 1000; ++ i)
+		{
+
+			lemon_log_text(sysm,"server send .........");
+
+			send(sysm,chan,0,0);
+		}
+
+	}
+
+	void* __msg_f(lemon_state S,int flag,void * msg)
+	{
+		if(LEMON_MSG_CLOSE == flag)
+		{
+			lemon_log_text(S,"close msg (%p)",msg);
+
+			delete (int*)msg;
+
+			return nullptr;
+		}
+		else
+		{
+			lemon_log_text(S,"clone msg (%p)",msg);
+
+			return new int(*(int*)msg);
+		}
+	}
+
+	LEMON_UNITTEST_CASE(channel_unittest,public_test)
+	{
+		system sysm;
+
+		dtrace::open_console(sysm,LEMON_TRACE_DEBUG);
+
+		auto chan = channel_pub_t::make(sysm,__msg_f);
+
+		unique_channel scope_channel(sysm,chan);
+
+		for(size_t i = 0; i < 10; ++ i)
+		{
+
+			sysm.go([chan](actor self){
+
+				for(int i = 0;; ++i)
+				{
+					int* val = (int*)recv(self,chan);
+
+					lemon_check(val != nullptr);
+
+					lemon_log_text(self,"client recv (%d)",*val);
+
+					delete val;
+				}
+			});
+
+		}
+
+		for(int  i = 0; i < 100000; ++ i)
+		{
+			lemon_log_text(sysm,"server send .........");
+
+			send(sysm,chan,new int(i),0);
+		}
+
+
+	}
+
 	
 }}

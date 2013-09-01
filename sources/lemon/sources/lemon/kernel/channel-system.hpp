@@ -30,6 +30,8 @@ namespace lemon{namespace kernel{
 
 		void stop();
 
+		void reset();
+
 	public:
 
 		lemon_channel_t make_channel(lemon_t source,int type,size_t maxlen,lemon_msg_f f,void * userdata);

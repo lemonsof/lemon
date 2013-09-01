@@ -6,11 +6,11 @@
 using namespace lemon;
 using namespace lemon::kernel;
 
-LEMON_API lemon_state lemon_new(size_t maxcoros,size_t maxchannels)
+LEMON_API lemon_state lemon_new(size_t maxcoros,size_t maxchannels,size_t stacksize)
 {
 	try
 	{
-		return (lemon_state)(new lemon_system(maxcoros,maxchannels))->main_actor();
+		return (lemon_state)(new lemon_system(maxcoros,maxchannels,stacksize))->main_actor();
 	}
 	catch(...)
 	{
@@ -326,7 +326,16 @@ LEMON_API void* lemon_recv(lemon_state S, lemon_channel_t channel,int flags,size
 
 	try
 	{
-		return actor->get_system()->channel_system().recv(*actor,channel,flags,timeout);
+		void* result = actor->get_system()->channel_system().recv(*actor,channel,flags,timeout);
+
+		if(actor->killed())
+		{
+			lemon_raise_errno(S,"the actor is killed",LEMON_KILLED);
+
+			return nullptr;
+		}
+
+		return result;
 	}
 	catch(const lemon_errno_info& e)
 	{
@@ -351,7 +360,16 @@ LEMON_API bool lemon_send(lemon_state S, lemon_channel_t channel,void* msg,int f
 
 	try
 	{
-		return actor->get_system()->channel_system().send(*actor,channel,msg,flags,timeout);
+		bool status = actor->get_system()->channel_system().send(*actor,channel,msg,flags,timeout);
+
+		if(actor->killed())
+		{
+			lemon_raise_errno(S,"the actor is killed",LEMON_KILLED);
+
+			return false;
+		}
+
+		return status;
 	}
 	catch(const lemon_errno_info& e)
 	{

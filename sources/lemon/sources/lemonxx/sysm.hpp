@@ -16,14 +16,12 @@
 
 namespace lemon{
 
-	class system : private nocopyable
+	class system : public actor
 	{
 	public:
-		system()
+		system():actor(lemon_new())
 		{
-			_S = lemon_new();
-
-			if(!_S)
+			if(!(lemon_state)*this)
 			{
 				lemon_declare_errinfo(errorCode);
 
@@ -33,11 +31,9 @@ namespace lemon{
 			}
 		}
 
-		system(size_t maxcoros,size_t maxchannels)
+		system(size_t maxcoros,size_t maxchannels):actor(lemon_new(maxcoros,maxchannels))
 		{
-			_S = lemon_new(maxcoros,maxchannels);
-
-			if(!_S)
+			if(!(lemon_state)*this)
 			{
 				lemon_declare_errinfo(errorCode);
 
@@ -49,42 +45,14 @@ namespace lemon{
 
 		~system()
 		{
-			lemon_close(_S);
-		}
-
-		template<typename Handle>
-		lemon_t go(Handle && handle,size_t stacksize = LEMON_DEFAULT_STACKSIZE)
-		{
-			return actor::make_go(_S,handle,stacksize);
+			lemon_close((lemon_state)*this);
 		}
 
 		void join()
 		{
-			lemon_join(_S);
+			lemon_join(*this);
 
-			lemon_check_throw(_S);
-		}
-
-		operator lemon_state () const { return _S; }
-
-		bool notify(lemon_t target,lemon_event_t evt)
-		{
-			bool status = lemon_notify(_S,target,&evt,1);
-
-			lemon_check_throw(_S);
-
-			return status;
-		}
-
-	
-
-		bool notify(lemon_t target,const const_buff<lemon_event_t>& events)
-		{
-			bool status = lemon_notify(_S,target,events.buff,events.length);
-
-			lemon_check_throw(_S);
-
-			return status;
+			lemon_check_throw(*this);
 		}
 
 	private:

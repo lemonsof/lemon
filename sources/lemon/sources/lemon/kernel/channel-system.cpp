@@ -11,19 +11,22 @@ namespace lemon{namespace kernel{
 
 	lemon_channel_system::~lemon_channel_system()
 	{
-	
+		reset();
 	}
 
-	void lemon_channel_system::stop()
+	void lemon_channel_system::reset()
 	{
-		std::unique_lock<std::mutex> lock(_mutex);
-
 		for(auto id : _channels)
 		{
 			lemon_channel::from(id)->release(true);
 		}
 
 		_channels.clear();
+	}
+
+	void lemon_channel_system::stop()
+	{
+		
 	}
 
 	lemon_channel_t lemon_channel_system::make_channel(lemon_t /*source*/,int type,size_t maxlen,lemon_msg_f f,void * userdata)
@@ -40,10 +43,15 @@ namespace lemon{namespace kernel{
 			}
 		case LEMON_CHANNEL_PUB:
 			{
+				channel = new lemon_publish_channel(_system,maxlen,f,userdata);
+
 				break;
 			}
 		case LEMON_CHANNEL_REQ:
 			{
+
+				channel = new lemon_request_channel(_system,maxlen,f,userdata);
+
 				break;
 			}
 		default:
@@ -97,11 +105,21 @@ namespace lemon{namespace kernel{
 			channel->addref();
 		}
 
-		bool status = channel->send(lemon_actor::from(source),msg,flags,timeout);
+		try
+		{
+			bool status = channel->send(lemon_actor::from(source),msg,flags,timeout);
 
-		close_channel(source,id);
+			close_channel(source,id);
 
-		return status;
+			return status;
+		}
+		catch(...)
+		{
+			close_channel(source,id);
+
+			throw;
+		}
+		
 	}
 
 	void* lemon_channel_system::recv(lemon_t source,lemon_channel_t id,int flags, size_t timeout)
@@ -123,11 +141,19 @@ namespace lemon{namespace kernel{
 			channel->addref();
 		}
 
+		try
+		{
+			auto data = channel->recv(lemon_actor::from(source),flags,timeout);
 
-		auto data = channel->recv(lemon_actor::from(source),flags,timeout);
+			close_channel(source,id);
 
-		close_channel(source,id);
+			return data;
+		}
+		catch(...)
+		{
+			close_channel(source,id);
 
-		return data;
+			throw;
+		}
 	}
 }}

@@ -101,7 +101,7 @@
 
 #define LEMON_INVALID_HANDLE(t)						((t)-1)
 
-#define LEMON_DEFAULT_STACKSIZE						(1024 * 16)
+#define LEMON_DEFAULT_STACKSIZE						(1024 * 32)
 
 #define lemon_infinite								(size_t)-1
 
@@ -195,7 +195,7 @@ LEMON_API lemon_uuid_t								LEMON_UNITTEST_ERROR_CATALOG;
 
 //////////////////////////////////////////////////////////////////////////
 
-LEMON_API lemon_state lemon_new(size_t maxcoros = LEMON_MAX_COROS,size_t maxchannels = LEMON_MAX_CHANNELS);
+LEMON_API lemon_state lemon_new(size_t maxcoros = LEMON_MAX_COROS,size_t maxchannels = LEMON_MAX_CHANNELS,size_t stacksize = LEMON_DEFAULT_STACKSIZE);
 
 LEMON_API void lemon_stop(lemon_state self);
 

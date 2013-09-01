@@ -41,7 +41,7 @@ namespace lemon{namespace kernel{
 
 	bool lemon_actor::killed() const
 	{
-		return _system->exited() || _exited;
+		return _system->exited() || _killed;
 	}
 }}
 

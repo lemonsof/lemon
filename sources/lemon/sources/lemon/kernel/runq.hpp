@@ -24,7 +24,7 @@ namespace lemon{namespace kernel{
 
 		~lemon_runq();
 
-		void join();
+		bool join();
 
 		operator lemon_context_t* ()
 		{
@@ -43,6 +43,7 @@ namespace lemon{namespace kernel{
 
 		lemon_context_t									_context;
 	};
+
 }}
 
 #endif //LEMON_KERNEL_RUNQ_HPP

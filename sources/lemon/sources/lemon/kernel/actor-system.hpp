@@ -8,6 +8,8 @@
 */
 #ifndef LEMON_KERNEL_ACTOR_SYSTEM_HPP
 #define LEMON_KERNEL_ACTOR_SYSTEM_HPP
+#include <mutex>
+#include <condition_variable>
 #include <lemon/kernel/actor.hpp>
 
 namespace lemon{namespace kernel{
@@ -29,6 +31,55 @@ namespace lemon{namespace kernel{
 	private:
 
 		lemon_system										*_sysm;
+	};
+
+
+	class lemon_man_runq : private nocopyable
+	{
+	public:
+		lemon_man_runq();
+
+		~lemon_man_runq();
+
+		void start(lemon_system * sysm,size_t stacksize);
+
+		operator lemon_actor* ()
+		{
+			return &_mainActor;
+		}
+
+		void notify();
+
+		void stop()
+		{
+			_mainActor.killed();
+		}
+
+		void join();
+
+	private:
+
+		static void __f(lemon_man_runq * runq)
+		{
+			runq->proc();
+		}
+
+		void proc();
+
+	private:
+		bool											_exit;
+
+		std::mutex										_mutex;
+
+		std::condition_variable							_condition;
+
+		lemon_system									*_sysm;
+
+		lemon_context_t									*_context;
+
+		lemon_context_t									_mainContext;
+
+		lemon_actor										_mainActor;
 	};
 
 }}

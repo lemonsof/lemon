@@ -188,6 +188,8 @@ namespace lemon{namespace kernel{
 		{
 			size_t												id;
 
+			lemon_t												source;
+
 			void												*userdata;
 		};
 

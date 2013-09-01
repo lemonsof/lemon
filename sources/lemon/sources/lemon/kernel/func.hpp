@@ -16,14 +16,14 @@ namespace lemon{namespace kernel{
 	{
 		actor->lasterror_reset();
 
-		if(actor == actor->get_system()->main_actor())
+		/*if(actor == actor->get_system()->main_actor())
 		{
 			lemon_declare_errinfo(errorCode);
 
 			lemon_user_errno(errorCode,LEMON_UNSUPPORT_OPTION);
 
 			throw errorCode;
-		}
+		}*/
 
 		if(actor->killed())
 		{
@@ -42,7 +42,15 @@ namespace lemon{namespace kernel{
 
 		actor->notified_reset();
 
-		lemon_context_jump(*actor,actor->parent(),0);
+		if(actor == actor->get_system()->main_actor())
+		{
+			lemon_context_jump(*actor,actor->parent(),(intptr_t)actor->get_system()->main_runq());
+		}
+		else
+		{
+			lemon_context_jump(*actor,actor->parent(),(intptr_t)0);
+		}
+		
 
 		if(actor->killed())
 		{

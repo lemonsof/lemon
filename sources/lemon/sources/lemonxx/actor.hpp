@@ -59,7 +59,7 @@ namespace lemon{
 		template<typename Handle>
 		lemon_t go(Handle && handle,size_t stacksize = LEMON_DEFAULT_STACKSIZE)
 		{
-			return make_go(_S,HANDLE,stacksize);
+			return make_go(_S,handle,stacksize);
 		}
 
 		void sleep(size_t timeout)

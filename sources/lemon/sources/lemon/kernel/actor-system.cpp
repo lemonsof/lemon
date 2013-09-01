@@ -1,5 +1,6 @@
 #include <new>
 #include <assert.h>
+#include <lemon/kernel/func.hpp>
 #include <lemon/kernel/system.hpp>
 #include <lemon/kernel/actor-system.hpp>
 
@@ -172,5 +173,94 @@ namespace lemon{namespace kernel{
 			void * block  = (lemon_byte_t*)actor + sizeof(lemon_actor);
 
 			__free(block,((lemon_context_t*)*actor)->fc_stack.size + sizeof(lemon_actor));
+		}
+
+
+		//////////////////////////////////////////////////////////////////////////
+
+		lemon_man_runq::lemon_man_runq()
+			:_exit(false)
+			,_sysm(nullptr)
+			,_mainActor(nullptr,&_mainContext,nullptr,nullptr)
+		{
+			
+		}
+
+		lemon_man_runq::~lemon_man_runq()
+		{
+			__free(_context->fc_stack.sp,_context->fc_stack.size);
+		}
+
+		void lemon_man_runq::start(lemon_system * sysm,size_t stacksize)
+		{
+
+			_sysm = sysm;
+
+			void * block = __alloc(stacksize);
+
+			if(!block)
+			{
+				lemon_log_error(_sysm->trace_system(),LEMON_INVALID_HANDLE(lemon_t),"create new actor failed,insufficient memory");
+
+				lemon_declare_errinfo(errorCode);
+
+				lemon_user_errno(errorCode,LEMON_RESOURCE_ERROR);
+
+				throw errorCode;
+			}
+
+			_context = lemon_make_context(block,stacksize,(void(*)(intptr_t))&lemon_man_runq::__f);
+
+			_mainActor.set_system(_sysm);
+
+			_mainActor.parent_reset(_context);
+		}
+
+		void lemon_man_runq::proc()
+		{
+			_sysm->wait_or_kill(&_mainActor);
+
+			for(;;)
+			{
+				lemon_actor * actor = _sysm->dispatch_one();
+
+				if(!actor) break;
+
+				actor->lock();
+
+				actor->parent_reset(_context);
+
+				lemon_context_jump(_context,*actor,(intptr_t)actor);
+
+				_sysm->wait_or_kill(actor);
+			}
+
+			{
+				std::unique_lock<std::mutex> lock(_mutex);
+
+				while(!_exit) 
+				{
+					_condition.wait(lock);
+				}
+			}
+
+			lemon_context_jump(_context,&_mainContext,(intptr_t)nullptr);
+		}
+
+		void lemon_man_runq::notify()
+		{
+			std::unique_lock<std::mutex> lock(_mutex);
+
+			_exit = true;
+
+			_condition.notify_one();
+		}
+
+		void lemon_man_runq::join()
+		{
+			if(_mainActor.parent() != _context)
+			{
+				lemon_context_jump(_mainActor,_mainActor.parent(),0);
+			}
 		}
 }}

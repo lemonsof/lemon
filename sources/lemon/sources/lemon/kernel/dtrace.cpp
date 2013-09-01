@@ -132,6 +132,8 @@ namespace lemon{namespace kernel{
 #endif 
 
 				blocksize *= 2;
+
+				freemsg(traceMsg);
 			}
 
 			for(auto trace : _traces)

@@ -3,13 +3,13 @@
 
 namespace lemon{namespace kernel{
 
-	lemon_system::lemon_system(size_t maxcoros,size_t maxchannels)
+	lemon_system::lemon_system(size_t maxcoros,size_t maxchannels,size_t stacksize)
 		:_maxcoros(maxcoros)
 		,_maxchannels(maxchannels)
 		,_exit(false)
 		,_seq(0)
 	{
-		_mainActor.set_system(this);
+		_mainRunq.start(this,stacksize);
 
 		_timewheel.start(this);
 
@@ -40,34 +40,51 @@ namespace lemon{namespace kernel{
 
 		lemon_context_t context;
 
-		lemon_log_debug(_traceSystem,_mainActor,"lemon exit dispatch ...");
+		lemon_log_debug(_traceSystem,*(lemon_actor*)_mainRunq,"lemon exit dispatch ...");
 
 		for(auto id : _actors)
 		{
 			auto actor = lemon_actor::from(id);
 
-			actor->kill();
+			if(!actor->exited())
+			{
+				actor->kill();
 
-			actor->parent_reset(&context);
+				actor->parent_reset(&context);
 
-			lemon_context_jump(&context,*actor,(intptr_t)actor);
+				actor->lock();
+
+				lemon_context_jump(&context,*actor,(intptr_t)actor);
+			}
 
 			assert(actor->exited());
 
 			_actorSystem.close(actor);
 		}
 
-		lemon_log_debug(_traceSystem,_mainActor,"lemon exit dispatch -- success");
+		_actors.clear();
+
+		_waitingActors.clear();
+
+		_channelSystem.reset();
+
+		lemon_log_debug(_traceSystem,*(lemon_actor*)_mainRunq,"lemon exit dispatch -- success");
 	}
 
 	void lemon_system::join()
 	{
+		lemon_runq * self = nullptr;
+
 		for(auto q : _runqs)
 		{
-			q->join();
+			if(!q->join()) self = q;
 		}
 
 		_timewheel.join();
+
+		_mainRunq.join();
+
+		if(self) self->join();
 	}
 
 	void lemon_system::stop()
@@ -87,6 +104,8 @@ namespace lemon{namespace kernel{
 		_extensionSystem.stop();
 
 		_timewheel.stop();
+
+		_mainRunq.stop();
 	}
 
 	lemon_t lemon_system::go(lemon_t source,lemon_f f, void * userdata,size_t stacksize)
@@ -142,6 +161,13 @@ namespace lemon{namespace kernel{
 
 	void lemon_system::wait_or_kill(lemon_actor * actor)
 	{
+		if(_exit)
+		{
+			if(actor == _mainRunq) _mainRunq.notify();
+
+			return ;
+		}
+
 		if(actor->exited())
 		{
 			std::unique_lock<std::mutex> lock(_actorsMutex);
@@ -163,8 +189,6 @@ namespace lemon{namespace kernel{
 
 			return;
 		}
-
-		
 		
 		try
 		{
@@ -204,6 +228,8 @@ namespace lemon{namespace kernel{
 		{
 			std::unique_lock<std::mutex> lock(_waitingActorsMutex);
 
+			if(_exit) return true;
+
 			if(_waitingActors.count(target) == 0) return false;
 
 			actor->notified_reset();
@@ -228,6 +254,8 @@ namespace lemon{namespace kernel{
 
 		{
 			std::unique_lock<std::mutex> lock(_waitingActorsMutex);
+
+			if(_exit) return true;
 
 			if(_waitingActors.count(target) == 0) return false;
 
