@@ -36,18 +36,17 @@
 
 #define lemon_raise_errninfo(S,msg,ei)						*lemon_raise_errno__(S,msg,(ei).error.code,(ei).error.catalog,(ei).file,(ei).lines)
 
-#define lemon_make_error(error,catalog,errorCode)			{error.catalog = &catalog;error.code = errorCode;}
-
-#define lemon_make_errorinfo(errorinfo,catalog,errorCode) \
-	lemon_make_error(errorinfo.Error,catalog,errorCode); \
+#define lemon_make_errorinfo(errorinfo,c,errorCode)\
+	errorinfo.error.catalog = &c;\
+	errorinfo.error.code = errorCode;\
 	errorinfo.file = __FILE__;\
 	errorinfo.lines = __LINE__;
 
-#define lemon_win32_errno(errorinfo,ec)						lemon_make_errorinfo((errorinfo),LEMON_WIN32_ERROR_CATALOG,ec)
+#define lemon_win32_errno(errorinfo,ec)						lemon_make_errorinfo(errorinfo,LEMON_WIN32_ERROR_CATALOG,ec)
 
-#define lemon_com_errno(errorinfo,ec)						lemon_make_errorinfo((errorinfo),LEMON_COM_ERROR_CATALOG,ec)
+#define lemon_com_errno(errorinfo,ec)						lemon_make_errorinfo(errorinfo,LEMON_COM_ERROR_CATALOG,ec)
 
-#define lemon_posix_errno(errorinfo,ec)						lemon_make_errorinfo((errorinfo),LEMON_POSIX_ERROR_CATALOG,ec)
+#define lemon_posix_errno(errorinfo,ec)						lemon_make_errorinfo(errorinfo,LEMON_POSIX_ERROR_CATALOG,ec)
 
 #define lemon_user_errno(errorinfo,ec)						{(errorinfo).error = ec;(errorinfo).file = __FILE__; (errorinfo).lines = __LINE__;}
 
@@ -126,6 +125,7 @@ LEMON_DECLARE_HANDLE								(lemon_t);
 LEMON_DECLARE_HANDLE								(lemon_state);
 LEMON_DECLARE_HANDLE								(lemon_event_t);
 LEMON_DECLARE_HANDLE								(lemon_trace_t);
+LEMON_DECLARE_HANDLE								(lemon_socket_t);
 LEMON_DECLARE_HANDLE								(lemon_channel_t);
 LEMON_DECLARE_HANDLE								(lemon_extension_t);
 
@@ -240,5 +240,78 @@ LEMON_API bool lemon_send(lemon_state S, lemon_channel_t channel,void* msg,int f
 
 //////////////////////////////////////////////////////////////////////////
 
+LEMON_API lemon_socket_t 
+	lemon_new_socket(
+	lemon_state S,
+	int af,
+	int type, 
+	int protocol);
+
+LEMON_API void 
+	lemon_close_socket(
+	lemon_state S,
+	lemon_socket_t socket);
+
+LEMON_API void 
+	lemon_socket_bind(
+	lemon_state S, 
+	lemon_socket_t socket, 
+	const struct sockaddr* address);
+
+LEMON_API void 
+	lemon_socket_listen(
+	lemon_state S, 
+	lemon_socket_t socket,
+	int backlog);
+
+
+LEMON_API lemon_socket_t 
+	lemon_socket_accept(
+	lemon_state S, 
+	lemon_socket_t socket,
+	size_t timeout = lemon_infinite);
+
+
+LEMON_API void 
+	lemon_socket_connect(
+	lemon_state S, 
+	lemon_socket_t socket,
+	const struct sockaddr* remote,
+	size_t timeout = lemon_infinite);
+
+LEMON_API size_t 
+	lemon_socket_sendto(
+	lemon_state S, 
+	lemon_socket_t socket,
+	const struct sockaddr* remote,
+	const void * buffer, 
+	size_t buffersize,
+	size_t timeout = lemon_infinite);
+
+LEMON_API size_t 
+	lemon_socket_recvfrom(
+	lemon_state S, 
+	lemon_socket_t socket,
+	struct sockaddr* remote,
+	size_t *length,
+	void *buffer, 
+	size_t buffersize,
+	size_t timeout = lemon_infinite);
+
+LEMON_API size_t 
+	lemon_socket_send(
+	lemon_state S, 
+	lemon_socket_t socket,
+	const void * buffer, 
+	size_t buffersize,
+	size_t timeout = lemon_infinite);
+
+LEMON_API size_t 
+	lemon_socket_recv(
+	lemon_state S, 
+	lemon_socket_t socket,
+	void * buffer, 
+	size_t buffersize,
+	size_t timeout = lemon_infinite);
 
 #endif //LEMON_ABI_H

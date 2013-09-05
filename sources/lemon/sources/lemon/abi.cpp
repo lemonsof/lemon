@@ -6,6 +6,15 @@
 using namespace lemon;
 using namespace lemon::kernel;
 
+lemon_uuid_t LEMON_WIN32_ERROR_CATALOG = { 0x3eb0937e, 0xdbe9, 0x4946, { 0xa0, 0xb4, 0x44, 0xc4, 0x19, 0xe9, 0x46, 0xf7 } };
+
+lemon_uuid_t LEMON_COM_ERROR_CATALOG = { 0x3eb0937e, 0xdbe9, 0x4946, { 0xa0, 0xb4, 0x44, 0xc4, 0x19, 0xe9, 0x46, 0xf2 } };
+
+lemon_uuid_t LEMON_POSIX_ERROR_CATALOG = { 0x11a7987e, 0xa950, 0x434c, { 0xa4, 0xbb, 0x76, 0xdf, 0x4d, 0x42, 0xa2, 0xe1 } };
+
+lemon_uuid_t LEMON_UNITTEST_ERROR_CATALOG = { 0x11a7987e, 0xa950, 0x434c, { 0xa4, 0xbb, 0x76, 0xd1, 0x4d, 0x42, 0xa2, 0xe2 } };
+
+
 LEMON_API lemon_state lemon_new(size_t maxcoros,size_t maxchannels,size_t stacksize)
 {
 	try
@@ -376,5 +385,78 @@ LEMON_API bool lemon_send(lemon_state S, lemon_channel_t channel,void* msg,int f
 		lemon_raise_errninfo(S,"call lemon_send failed",e);
 
 		return false;
+	}
+}
+
+
+LEMON_API lemon_socket_t 
+	lemon_new_socket(
+	lemon_state S,
+	int af,
+	int type, 
+	int protocol)
+{
+	lemon_actor * actor = reinterpret_cast<lemon_actor*>(S);
+
+	if(actor->killed())
+	{
+		lemon_raise_errno(S,"the actor is killed",LEMON_KILLED);
+
+		return false;
+	}
+
+	actor->lasterror_reset();
+
+	try
+	{
+		lemon_socket_t socket = actor->get_system()->io_system().make_socket(*actor,af,type,protocol);
+
+		if(actor->killed())
+		{
+			lemon_raise_errno(S,"the actor is killed",LEMON_KILLED);
+
+			return LEMON_INVALID_HANDLE(lemon_socket_t);
+		}
+
+		return socket;
+	}
+	catch(const lemon_errno_info& e)
+	{
+		lemon_raise_errninfo(S,"call lemon_send failed",e);
+
+		return LEMON_INVALID_HANDLE(lemon_socket_t);
+	}
+}
+
+LEMON_API void 
+	lemon_close_socket(
+	lemon_state S,
+	lemon_socket_t socket)
+{
+	lemon_actor * actor = reinterpret_cast<lemon_actor*>(S);
+
+	if(actor->killed())
+	{
+		lemon_raise_errno(S,"the actor is killed",LEMON_KILLED);
+
+		return;
+	}
+
+	actor->lasterror_reset();
+
+	try
+	{
+		actor->get_system()->io_system().close_socket(*actor,socket);
+
+		if(actor->killed())
+		{
+			lemon_raise_errno(S,"the actor is killed",LEMON_KILLED);
+
+			return;
+		}
+	}
+	catch(const lemon_errno_info& e)
+	{
+		lemon_raise_errninfo(S,"call lemon_send failed",e);
 	}
 }

@@ -22,6 +22,7 @@
 #include <lemon/kernel/extensions.hpp>
 #include <lemon/kernel/actor-system.hpp>
 #include <lemon/kernel/channel-system.hpp>
+#include <lemon/kernel/io_system_iocp.hpp>
 
 
 #ifdef lemon_log
@@ -66,6 +67,8 @@ namespace lemon{namespace kernel{
 
 		lemon_channel_system & channel_system() { return _channelSystem; }
 
+		lemon_io_system& io_system() { return _ioSystem; }
+
 	public:
 
 		lemon_actor* dispatch_one();
@@ -107,6 +110,8 @@ namespace lemon{namespace kernel{
 		lemon_extension_system								_extensionSystem;
 
 		lemon_channel_system								_channelSystem;
+
+		lemon_io_system										_ioSystem;
 		
 		actors_type											_actors;
 
