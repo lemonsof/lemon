@@ -256,7 +256,8 @@ LEMON_API void
 	lemon_socket_bind(
 	lemon_state S, 
 	lemon_socket_t socket, 
-	const struct sockaddr* address);
+	const struct sockaddr* address,
+	socklen_t len);
 
 LEMON_API void 
 	lemon_socket_listen(

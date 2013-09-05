@@ -24,9 +24,7 @@ namespace lemon{
 	public:
 		typedef Handle										handle_type;
 
-		typedef CloseF										close_f;
-
-		basic_handle_obj(lemon_state S):_handle(LEMON_INVALID_HANDLE(handle_type)){}
+		basic_handle_obj(lemon_state S):_S(S),_handle(LEMON_INVALID_HANDLE(handle_type)){}
 
 		basic_handle_obj(lemon_state S,handle_type handle):_S(S),_handle(handle){}
 
@@ -57,7 +55,7 @@ namespace lemon{
 
 		void close()
 		{
-			if(!empty()) close_f(release());
+			if(!empty()) CloseF(_S,release());
 		}
 
 		handle_type native() const { return _handle; }

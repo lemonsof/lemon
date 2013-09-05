@@ -30,6 +30,8 @@ namespace lemon{namespace kernel{
 
 		lemon_system* system();
 
+		operator SOCKET() { return _handle; }
+
 	private:
 
 		lemon_io_system								*_sysm;
@@ -49,6 +51,31 @@ namespace lemon{namespace kernel{
 		LPFN_GETACCEPTEXSOCKADDRS					_getAcceptExSockaddrs;
 	};
 
+	inline void bind(lemon_socket* socket, const sockaddr* name, socklen_t len)
+	{
+		if(SOCKET_ERROR == ::bind(*socket,name,len)){
+
+			lemon_declare_errinfo(errorCode);
+
+			lemon_win32_errno(errorCode,WSAGetLastError());
+
+			throw errorCode;
+		}
+	}
+
+	inline void listen(lemon_socket* socket,int backlog)
+	{
+		if(SOCKET_ERROR == ::listen(*socket,backlog)){
+
+			lemon_declare_errinfo(errorCode);
+
+			lemon_win32_errno(errorCode,WSAGetLastError());
+
+			throw errorCode;
+		}
+	}
+
+	void accept(lemon_socket * socket,size_t timeout);
 }}
 
 #endif //WIN32

@@ -1,4 +1,4 @@
-#include <lemon/kernel/iocp.hpp>
+#include <lemon/kernel/socket_iocp.hpp>
 
 #ifdef WIN32
 #include <lemon/kernel/io_system_iocp.hpp>
@@ -78,6 +78,12 @@ namespace lemon{namespace kernel{
 	lemon_system* lemon_socket::system()
 	{
 		return _sysm->system();
+	}
+
+
+	void accept(lemon_socket * socket,size_t timeout)
+	{
+
 	}
 }}
 
