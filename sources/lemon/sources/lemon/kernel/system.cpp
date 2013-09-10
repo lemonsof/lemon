@@ -19,7 +19,7 @@ namespace lemon{namespace kernel{
 
 		_channelSystem.start(this);
 
-		_ioSystem.start(this);
+		//_ioSystem.start(this);
 
 		size_t Qs = std::thread::hardware_concurrency();
 
@@ -101,7 +101,7 @@ namespace lemon{namespace kernel{
 
 		}
 
-		_ioSystem.stop();
+		//_ioSystem.stop();
 
 		_channelSystem.stop();
 

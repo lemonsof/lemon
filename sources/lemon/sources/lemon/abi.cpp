@@ -389,74 +389,74 @@ LEMON_API bool lemon_send(lemon_state S, lemon_channel_t channel,void* msg,int f
 }
 
 
-LEMON_API lemon_socket_t 
-	lemon_new_socket(
-	lemon_state S,
-	int af,
-	int type, 
-	int protocol)
-{
-	lemon_actor * actor = reinterpret_cast<lemon_actor*>(S);
+// LEMON_API lemon_socket_t 
+// 	lemon_new_socket(
+// 	lemon_state S,
+// 	int af,
+// 	int type, 
+// 	int protocol)
+// {
+// 	lemon_actor * actor = reinterpret_cast<lemon_actor*>(S);
 
-	if(actor->killed())
-	{
-		lemon_raise_errno(S,"the actor is killed",LEMON_KILLED);
+// 	if(actor->killed())
+// 	{
+// 		lemon_raise_errno(S,"the actor is killed",LEMON_KILLED);
 
-		return false;
-	}
+// 		return false;
+// 	}
 
-	actor->lasterror_reset();
+// 	actor->lasterror_reset();
 
-	try
-	{
-		lemon_socket_t socket = actor->get_system()->io_system().make_socket(*actor,af,type,protocol);
+// 	try
+// 	{
+// 		lemon_socket_t socket = actor->get_system()->io_system().make_socket(*actor,af,type,protocol);
 
-		if(actor->killed())
-		{
-			lemon_raise_errno(S,"the actor is killed",LEMON_KILLED);
+// 		if(actor->killed())
+// 		{
+// 			lemon_raise_errno(S,"the actor is killed",LEMON_KILLED);
 
-			return LEMON_INVALID_HANDLE(lemon_socket_t);
-		}
+// 			return LEMON_INVALID_HANDLE(lemon_socket_t);
+// 		}
 
-		return socket;
-	}
-	catch(const lemon_errno_info& e)
-	{
-		lemon_raise_errninfo(S,"call lemon_send failed",e);
+// 		return socket;
+// 	}
+// 	catch(const lemon_errno_info& e)
+// 	{
+// 		lemon_raise_errninfo(S,"call lemon_send failed",e);
 
-		return LEMON_INVALID_HANDLE(lemon_socket_t);
-	}
-}
+// 		return LEMON_INVALID_HANDLE(lemon_socket_t);
+// 	}
+// }
 
-LEMON_API void 
-	lemon_close_socket(
-	lemon_state S,
-	lemon_socket_t socket)
-{
-	lemon_actor * actor = reinterpret_cast<lemon_actor*>(S);
+// LEMON_API void 
+// 	lemon_close_socket(
+// 	lemon_state S,
+// 	lemon_socket_t socket)
+// {
+// 	lemon_actor * actor = reinterpret_cast<lemon_actor*>(S);
 
-	if(actor->killed())
-	{
-		lemon_raise_errno(S,"the actor is killed",LEMON_KILLED);
+// 	if(actor->killed())
+// 	{
+// 		lemon_raise_errno(S,"the actor is killed",LEMON_KILLED);
 
-		return;
-	}
+// 		return;
+// 	}
 
-	actor->lasterror_reset();
+// 	actor->lasterror_reset();
 
-	try
-	{
-		actor->get_system()->io_system().close_socket(*actor,socket);
+// 	try
+// 	{
+// 		actor->get_system()->io_system().close_socket(*actor,socket);
 
-		if(actor->killed())
-		{
-			lemon_raise_errno(S,"the actor is killed",LEMON_KILLED);
+// 		if(actor->killed())
+// 		{
+// 			lemon_raise_errno(S,"the actor is killed",LEMON_KILLED);
 
-			return;
-		}
-	}
-	catch(const lemon_errno_info& e)
-	{
-		lemon_raise_errninfo(S,"call lemon_send failed",e);
-	}
-}
+// 			return;
+// 		}
+// 	}
+// 	catch(const lemon_errno_info& e)
+// 	{
+// 		lemon_raise_errninfo(S,"call lemon_send failed",e);
+// 	}
+// }

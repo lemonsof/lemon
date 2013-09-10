@@ -111,7 +111,7 @@ namespace lemon{namespace kernel{
 
 		lemon_channel_system								_channelSystem;
 
-		lemon_io_system										_ioSystem;
+		//lemon_io_system										_ioSystem;
 		
 		actors_type											_actors;
 

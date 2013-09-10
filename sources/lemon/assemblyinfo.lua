@@ -49,8 +49,12 @@ assembly =
 			name = "MULIT_RECV_EXCEPTION";
 	   };
 
-	    {
+	   {
 			name = "MAX_CHANNEL_LENGTH";
+	   };
+
+	    {
+			name = "INVALID_SOCKET";
 	   };
    };
 }
