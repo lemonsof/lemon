@@ -24,7 +24,12 @@ namespace lemon{
 
 		static lemon_extension_vtable make_extension(Extension * ext)
 		{
-			lemon_extension_vtable vtable = {typeid(Extension),&basic_extension::__stop_extension,&basic_extension::__close_extension};
+			lemon_extension_vtable vtable =
+			{
+					(lemon_extension_t)&typeid(Extension),&basic_extension::__start_extension,
+					&basic_extension::__stop_extension,
+					&basic_extension::__close_extension
+			};
 
 			return vtable;
 		}

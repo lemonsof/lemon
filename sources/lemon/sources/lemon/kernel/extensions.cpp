@@ -69,7 +69,7 @@ namespace lemon{namespace kernel{
 			}
 		}
 
-		lemon_log_error(_system->trace_system(),source,"can't found extension id : %d",(int)id);
+		lemon_log_error(_system->trace_system(),source,"can't found extension id : %p",id);
 
 		lemon_declare_errinfo(errorCode);
 
