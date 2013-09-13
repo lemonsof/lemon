@@ -13,10 +13,10 @@
 
 namespace lemon{namespace sockets{
 
-	class handle : public basic_handle_obj<lemon_socket_t,&lemon_close_socket>
+	class handle : public basic_handle_obj<lemon_fd_t,&lemon_close_socket>
 	{
 	public:
-		typedef basic_handle_obj<lemon_socket_t,&lemon_close_socket> base_type;
+		typedef basic_handle_obj<lemon_fd_t,&lemon_close_socket> base_type;
 
 		handle(lemon_state S,int af, int type, int protocol):base_type(S)
 		{

@@ -122,10 +122,10 @@
 
 
 LEMON_DECLARE_HANDLE								(lemon_t);
+LEMON_DECLARE_HANDLE								(lemon_fd_t);
 LEMON_DECLARE_HANDLE								(lemon_state);
 LEMON_DECLARE_HANDLE								(lemon_event_t);
 LEMON_DECLARE_HANDLE								(lemon_trace_t);
-LEMON_DECLARE_HANDLE								(lemon_socket_t);
 LEMON_DECLARE_HANDLE								(lemon_channel_t);
 LEMON_DECLARE_HANDLE								(lemon_extension_t);
 
@@ -240,7 +240,12 @@ LEMON_API bool lemon_send(lemon_state S, lemon_channel_t channel,void* msg,int f
 
 //////////////////////////////////////////////////////////////////////////
 
-LEMON_API lemon_socket_t 
+typedef union{
+	sockaddr_in													v4;
+	sockaddr_in6												v6;
+}																lemon_sockaddr;
+
+LEMON_API lemon_fd_t 
 	lemon_new_socket(
 	lemon_state S,
 	int af,
@@ -250,40 +255,40 @@ LEMON_API lemon_socket_t
 LEMON_API void 
 	lemon_close_socket(
 	lemon_state S,
-	lemon_socket_t socket);
+	lemon_fd_t socket);
 
 LEMON_API void 
 	lemon_socket_bind(
 	lemon_state S, 
-	lemon_socket_t socket, 
+	lemon_fd_t socket, 
 	const struct sockaddr* address,
 	socklen_t len);
 
 LEMON_API void 
 	lemon_socket_listen(
 	lemon_state S, 
-	lemon_socket_t socket,
+	lemon_fd_t socket,
 	int backlog);
 
 
-LEMON_API lemon_socket_t 
+LEMON_API lemon_fd_t 
 	lemon_socket_accept(
 	lemon_state S, 
-	lemon_socket_t socket,
+	lemon_fd_t socket,
 	size_t timeout = lemon_infinite);
 
 
 LEMON_API void 
 	lemon_socket_connect(
 	lemon_state S, 
-	lemon_socket_t socket,
+	lemon_fd_t socket,
 	const struct sockaddr* remote,
 	size_t timeout = lemon_infinite);
 
 LEMON_API size_t 
 	lemon_socket_sendto(
 	lemon_state S, 
-	lemon_socket_t socket,
+	lemon_fd_t socket,
 	const struct sockaddr* remote,
 	const void * buffer, 
 	size_t buffersize,
@@ -292,7 +297,7 @@ LEMON_API size_t
 LEMON_API size_t 
 	lemon_socket_recvfrom(
 	lemon_state S, 
-	lemon_socket_t socket,
+	lemon_fd_t socket,
 	struct sockaddr* remote,
 	size_t *length,
 	void *buffer, 
@@ -302,7 +307,7 @@ LEMON_API size_t
 LEMON_API size_t 
 	lemon_socket_send(
 	lemon_state S, 
-	lemon_socket_t socket,
+	lemon_fd_t socket,
 	const void * buffer, 
 	size_t buffersize,
 	size_t timeout = lemon_infinite);
@@ -310,7 +315,7 @@ LEMON_API size_t
 LEMON_API size_t 
 	lemon_socket_recv(
 	lemon_state S, 
-	lemon_socket_t socket,
+	lemon_fd_t socket,
 	void * buffer, 
 	size_t buffersize,
 	size_t timeout = lemon_infinite);

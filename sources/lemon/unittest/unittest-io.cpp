@@ -11,6 +11,6 @@ namespace lemon{namespace {
 
 		dtrace::open_console(sysm,LEMON_TRACE_ALL);
 
-		sockets::handle socket(sysm,AF_INET,SOCK_STREAM,IPPROTO_TCP);
+		//sockets::handle socket(sysm,AF_INET,SOCK_STREAM,IPPROTO_TCP);
 	}
 }}

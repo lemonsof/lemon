@@ -53,8 +53,8 @@ assembly =
 			name = "MAX_CHANNEL_LENGTH";
 	   };
 
-	    {
-			name = "INVALID_SOCKET";
+	   {
+			name = "INVALID_FD";
 	   };
    };
 }
