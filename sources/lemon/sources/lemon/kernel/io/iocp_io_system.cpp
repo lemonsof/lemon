@@ -70,9 +70,7 @@ namespace lemon{namespace kernel{
 
 		lemon_event_t events [] = { (lemon_event_t)irp };
 
-		auto evt = wait(lemon_actor::from(source), lock_wrapper(lock), cbuff(events),lemon_infinite);
-
-		assert(LEMON_INVALID_HANDLE(lemon_event_t) == events[0]);
+		wait(lemon_actor::from(source), lock_wrapper(lock), cbuff(events),lemon_infinite);
 
 		if(lemon_failed(irp->errorCode))
 		{
