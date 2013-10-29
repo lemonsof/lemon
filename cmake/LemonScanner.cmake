@@ -220,49 +220,7 @@ function(lemon_asm_files DIR)
 	
 	lemon_scan_files(LEMON_PACKAGE_ASM_SOURCE_FILES "Source Files" ${DIR}/sources/${LEMON_PACKAGE_RELATIVE_PATH}/asm/${LEMON_ASM_ARCH}-${LEMON_ASM_PLATFORM} PATTERNS *.${LEMON_ASM_SUFFIX})
 
-	if(WIN32)
-		foreach(FILE ${LEMON_PACKAGE_ASM_SOURCE_FILES})
-			file(RELATIVE_PATH PATH ${DIR}/sources ${FILE})
-	
-			string(REPLACE ".${LEMON_ASM_SUFFIX}" "" PATH ${PATH})
-
-			get_filename_component(NAME ${PATH} NAME)
-
-			string(REPLACE "${NAME}" "" CURRENT_DIR ${PATH})
-
-			file(TO_NATIVE_PATH "${CURRENT_DIR}" CURRENT_DIR)
-
-			if(NOT EXISTS ${LEMON_GEN_ROOT}/${CURRENT_DIR})
-				file(MAKE_DIRECTORY ${LEMON_GEN_ROOT}/${CURRENT_DIR})
-			endif()
-
-			set(GEN_FILE ${LEMON_GEN_ROOT}/${CURRENT_DIR}/${NAME}.obj)
-
-			file(TO_CMAKE_PATH "${GEN_FILE}" GEN_FILE)
-
-    		source_group("Obj Files\\${CURRENT_DIR}" FILES ${GEN_FILE})
-
-    		if(CMAKE_SIZEOF_VOID_P EQUAL 4)
-    			set(MASM_FLAGS /safeseh)
-    		endif()
-
-    		add_custom_command(OUTPUT ${GEN_FILE}
-    			COMMAND ${CMAKE_ASM_MASM_COMPILER} ${MASM_FLAGS} -c ${FILE} 
-    			DEPENDS ${FILE} ${CMAKE_ASM_MASM_COMPILER}
-    			WORKING_DIRECTORY ${LEMON_GEN_ROOT}/${CURRENT_DIR}
-    			COMMENT "generate cAsm2.obj")
-
-    		list(APPEND OUTPUT_FILES ${GEN_FILE} ${FILE})
-
-		endforeach()
-
-		set(LEMON_PACKAGE_ASM_SOURCE_FILES ${OUTPUT_FILES} ${LEMON_PACKAGE_ASM_SOURCE_FILES} PARENT_SCOPE)
-
-	else()
-		set(LEMON_PACKAGE_ASM_SOURCE_FILES ${LEMON_PACKAGE_ASM_SOURCE_FILES} PARENT_SCOPE)
-	endif()
-
-
+	set(LEMON_PACKAGE_ASM_SOURCE_FILES ${LEMON_PACKAGE_ASM_SOURCE_FILES} PARENT_SCOPE)
 	
 endfunction()
 
