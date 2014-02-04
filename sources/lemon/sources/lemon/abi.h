@@ -240,11 +240,6 @@ LEMON_API bool lemon_send(lemon_state S, lemon_channel_t channel,void* msg,int f
 
 //////////////////////////////////////////////////////////////////////////
 
-typedef union{
-	sockaddr_in													v4;
-	sockaddr_in6												v6;
-}																lemon_sockaddr;
-
 LEMON_API lemon_fd_t 
 	lemon_new_socket(
 	lemon_state S,
