@@ -85,7 +85,7 @@
 EXTERN  _exit:PROC            ; standard C library function
 .code
 
-lemon_context_jump PROC EXPORT FRAME
+helix_context_jump PROC EXPORT FRAME
     .endprolog
 
     mov     [rcx],       r12        ; save R12
@@ -178,5 +178,5 @@ nxt:
     mov     rcx,        r8          ; use third arg as first arg in context function
 
     jmp     r10                     ; indirect jump to caller
-lemon_context_jump ENDP
+helix_context_jump ENDP
 END

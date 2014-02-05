@@ -6,10 +6,10 @@
 * @version  1.0.0.0  
 * @date     2013/05/19
 */
-#ifndef LEMON_COROUTINE_FCONTEXT_I386_WIN_H
-#define LEMON_COROUTINE_FCONTEXT_I386_WIN_H
+#ifndef HELIX_COROUTINE_FCONTEXT_I386_WIN_H
+#define HELIX_COROUTINE_FCONTEXT_I386_WIN_H
 
-#include <lemon/configure.h>
+#include <helix/configure.h>
 
 struct stack_t
 {
@@ -20,17 +20,17 @@ struct stack_t
 
 struct fp_t
 {
-	lemon_uint32_t     fc_freg[2];
+	helix_uint32_t     fc_freg[2];
 };
 
-struct lemon_context_t
+struct helix_context_t
 {
-	lemon_uint32_t      fc_greg[6];
+	helix_uint32_t      fc_greg[6];
 	stack_t             fc_stack;
 	void            *   fc_excpt_lst;
 	void            *   fc_local_storage;
 	fp_t                fc_fp;
-	lemon_uint32_t      fc_dealloc;
+	helix_uint32_t      fc_dealloc;
 };
 
-#endif //LEMON_COROUTINE_FCONTEXT_I386_WIN_H
+#endif //HELIX_COROUTINE_FCONTEXT_I386_WIN_H

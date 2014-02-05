@@ -1,9 +1,9 @@
 assembly = 
 {
    -- the project name
-   name = "lemon";
+   name = "helix";
 
-   description = "lemon runtimes";
+   description = "helix runtimes";
 
    company = "yayanyang@gmail.com";
 

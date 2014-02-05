@@ -85,7 +85,7 @@
 EXTERN  _exit:PROC            ; standard C library function
 .code
 
-lemon_make_context PROC EXPORT FRAME  ; generate function table entry in .pdata and unwind information in
+helix_make_context PROC EXPORT FRAME  ; generate function table entry in .pdata and unwind information in
     .endprolog                   ; .xdata for a function's structured exception handling unwind behavior
 
     lea  rax,        [rcx-0130h] ; reserve space for fcontext_t at top of context stack
@@ -119,5 +119,5 @@ finish:
     xor   rcx,       rcx         ; exit code is zero
     call  _exit                  ; exit application
     hlt
-lemon_make_context ENDP
+helix_make_context ENDP
 END

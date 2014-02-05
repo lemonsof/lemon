@@ -5,17 +5,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef SOF_HAS_INTTYPES_H
+#ifdef HELIX_HAS_INTTYPES_H
 #	include <inttypes.h>
 #endif 
 
-#ifdef SOF_HAS_UNISTD_H
+#ifdef HELIX_HAS_UNISTD_H
 #	include <unistd.h>
 #endif
 
-#ifdef SOF_HAS_STDINT_H
+#ifdef HELIX_HAS_STDINT_H
 #       include <stdint.h>
-#endif //SOF_HAS_INTTYPES_H
+#endif //HELIX_HAS_INTTYPES_H
 
 #ifdef WIN32
 #	define WIN32_WINNT			${WIN32_WINNT} 			
@@ -43,30 +43,30 @@
 #endif //WIN32 
 
 
-typedef ${SBYTE_T} lemon_sbyte_t;
+typedef ${SBYTE_T} helix_sbyte_t;
 
-typedef ${BYTE_T} lemon_byte_t;
+typedef ${BYTE_T} helix_byte_t;
 
-typedef ${SBYTE_T} lemon_int8_t;
+typedef ${SBYTE_T} helix_int8_t;
 
-typedef ${BYTE_T} lemon_uint8_t;
+typedef ${BYTE_T} helix_uint8_t;
 
-typedef ${INT16_T} lemon_int16_t;
+typedef ${INT16_T} helix_int16_t;
 
-typedef ${UINT16_T} lemon_uint16_t;
+typedef ${UINT16_T} helix_uint16_t;
 
-typedef ${INT32_T} lemon_int32_t;
+typedef ${INT32_T} helix_int32_t;
 
-typedef ${UINT32_T} lemon_uint32_t;
+typedef ${UINT32_T} helix_uint32_t;
 
-typedef ${INT64_T} lemon_int64_t;
+typedef ${INT64_T} helix_int64_t;
 
-typedef ${UINT64_T} lemon_uint64_t;
+typedef ${UINT64_T} helix_uint64_t;
 
 
 #ifndef __cplusplus
 
-#ifdef SOF_HAS_STDBOOL_H
+#ifdef HELIX_HAS_STDBOOL_H
 
 #include <stdbool.h>
 

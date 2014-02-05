@@ -5,15 +5,15 @@ include(TestBigEndian)
 
 #check if the platform is bigend
 
-TEST_BIG_ENDIAN(SOF_BIG_END)
+TEST_BIG_ENDIAN(HELIX_BIG_END)
 
 #check the wchar_t length
-check_type_size(wchar_t SOF_WCHAR_SIZE)
+check_type_size(wchar_t HELIX_WCHAR_SIZE)
 
 #check the standard files
-check_include_file(stdbool.h SOF_HAS_STDBOOL_H)
-check_include_file(inttypes.h SOF_HAS_INITTYPES_H)
-check_include_file(stdint.h SOF_HAS_STDINT_H)
+check_include_file(stdbool.h HELIX_HAS_STDBOOL_H)
+check_include_file(inttypes.h HELIX_HAS_INITTYPES_H)
+check_include_file(stdint.h HELIX_HAS_STDINT_H)
 
 
 #check and define fix length int types

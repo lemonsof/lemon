@@ -6,9 +6,9 @@
 * @version  1.0.0.0  
 * @date     2013/05/20
 */
-#ifndef LEMON_COROUTINE_FCONTEXT_ARM_H
-#define LEMON_COROUTINE_FCONTEXT_ARM_H
-#include <lemon/configure.h>
+#ifndef HELIX_COROUTINE_FCONTEXT_ARM_H
+#define HELIX_COROUTINE_FCONTEXT_ARM_H
+#include <helix/configure.h>
 
 struct stack_t
 {
@@ -18,13 +18,13 @@ struct stack_t
 
 struct fp_t
 {
-	lemon_uint32_t		fc_freg[16];
+	helix_uint32_t		fc_freg[16];
 };
 
-struct lemon_context_t
+struct helix_context_t
 {
-	lemon_uint32_t		fc_greg[11];
+	helix_uint32_t		fc_greg[11];
 	stack_t             fc_stack;
 	fp_t                fc_fp;
 };
-#endif  //LEMON_COROUTINE_FCONTEXT_ARM_H
+#endif  //HELIX_COROUTINE_FCONTEXT_ARM_H

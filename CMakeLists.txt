@@ -4,4 +4,4 @@ set(LEMON_CMAKE_ROOT ${PROJECT_SOURCE_DIR}/cmake)
 
 include(cmake/Lemon.cmake)
 
-lemon_solution(lemon)
+lemon_solution(helix)

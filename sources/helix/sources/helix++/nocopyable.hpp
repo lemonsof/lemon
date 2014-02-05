@@ -6,9 +6,9 @@
 * @version  1.0.0.0  
 * @date     2012/01/14
 */
-#ifndef LEMON_CXX_UTILITY_NOCOPYABLE_HPP
-#define LEMON_CXX_UTILITY_NOCOPYABLE_HPP
-namespace lemon{
+#ifndef HELIX_CXX_UTILITY_NOCOPYABLE_HPP
+#define HELIX_CXX_UTILITY_NOCOPYABLE_HPP
+namespace helix{
 
 	class nocopyable{
 	public:
@@ -21,4 +21,4 @@ namespace lemon{
 	};
 
 }
-#endif //LEMON_CXX_UTILITY_NOCOPYABLE_HPP
+#endif //HELIX_CXX_UTILITY_NOCOPYABLE_HPP
