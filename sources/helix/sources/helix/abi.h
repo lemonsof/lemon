@@ -10,6 +10,7 @@
 #define HELIX_ABI_H
 #include <helix/configure.h>
 
+#define HELIX_MAX_EVENTS									16
 //////////////////////////////////////////////////////////////////////////
 
 #define HELIX_HANDLE_STRUCT_NAME(name) name##__

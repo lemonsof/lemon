@@ -17,16 +17,15 @@ HELIX_DECLARE_HANDLE(helix_actor_t);
 HELIX_DECLARE_HANDLE(helix_event_node_t);
 
 HELIX_IMPLEMENT_HANDLE(helix_event_node_t){
-	helix_event_node_t					next;
 	helix_event							event;
-	helix_mutex							mutex;
+	helix_mutex							*mutex;
 };
 
 HELIX_IMPLEMENT_HANDLE(helix_actor_t){
 
 	helix_actor_t						next;	
 
-	helix_event_node_t					event_list;
+	helix_event_node_t					event_list[HELIX_MAX_EVENTS];
 };
 
 HELIX_IMPLEMENT_HANDLE(helix_t){
