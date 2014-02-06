@@ -7,7 +7,7 @@ namespace helix{ namespace {
 	HELIX_UNITTEST_CASE(helix_actor_unittest,create_test){
 		helix_declare_errcode(errorCode);
 
-		helix_t H = helix_open(&errorCode);
+		helix_t H = helix_open(NULL,&errorCode);
 
 		helix_check(helix_success(errorCode));
 

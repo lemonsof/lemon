@@ -11,6 +11,22 @@ HELIX_PRIVATE int hardware_concurrency(){
 
 	return sysInfo.dwNumberOfProcessors;
 }
+
+typedef struct {
+	helix_alloc_t alloc;
+}									helix_win_alloc;
+
+HELIX_PRIVATE void * __alloc(struct helix_alloc_t*, void * ptr, size_t, size_t nsize){
+	if (nsize == 0) {
+		free(ptr);
+		return NULL;
+	}
+	else
+		return realloc(ptr, nsize);
+}
+
+helix_win_alloc default_alloc = { { __alloc } };
+
 #elif defined(LINUX) || defined(SOLARIS) || defined(AIX)  
 HELIX_PRIVATE int hardware_concurrency(){
 
@@ -21,15 +37,20 @@ HELIX_PRIVATE int hardware_concurrency(){
 #endif 
 
 
-HELIX_API helix_t helix_open(helix_errcode * errorCode){
+
+HELIX_API helix_t helix_open(helix_alloc_t* alloc,helix_errcode * errorCode){
 	
 	helix_reset_errorcode(*errorCode);
+
+	if (alloc == NULL){
+		alloc = &default_alloc.alloc;
+	}
 
 	int cpus = hardware_concurrency();
 
 	size_t blocksize = HELIX_HANDLE_SIZEOF(helix_kernel_t) + HELIX_STACK_SIZE;
 
-	void * block = malloc(blocksize);
+	void * block = helix_alloc(alloc, blocksize);
 
 	if (block == NULL){
 		helix_user_errno(*errorCode, HELIX_RESOURCE_ERROR);
@@ -42,7 +63,9 @@ HELIX_API helix_t helix_open(helix_errcode * errorCode){
 
 	helix_kernel_t kernel = (helix_kernel_t)block;
 
-	kernel->thread_list = (HELIX_HANDLE_STRUCT_NAME(helix_t)*)malloc(HELIX_HANDLE_SIZEOF(helix_t) * cpus);
+	kernel->alloc = alloc;
+
+	kernel->thread_list = (HELIX_HANDLE_STRUCT_NAME(helix_t)*)helix_alloc(alloc,HELIX_HANDLE_SIZEOF(helix_t) * cpus);
 
 	kernel->thread_list_counter = cpus;
 
@@ -82,9 +105,9 @@ HELIX_API void helix_close(helix_t helix){
 		close_thread_and_join(&kernel->thread_list[i]);
 	}
 
-	free(kernel->thread_list);
+	helix_free(kernel->alloc,kernel->thread_list);
 
 	void * block = (helix_byte_t*)kernel - HELIX_STACK_SIZE;
 
-	free(block);
+	helix_free(kernel->alloc,block);
 }

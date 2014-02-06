@@ -55,6 +55,10 @@
 
 #define helix_condition_notify_all(condition)				condition->notify_all(condition)
 
+#define helix_alloc(alloc_t,nsize)							(alloc_t)->alloc((alloc_t),NULL,0,nsize);
+
+#define helix_free(alloc_t,ptr)								(alloc_t)->alloc((alloc_t),ptr,0,0);
+
 //////////////////////////////////////////////////////////////////////////
 typedef struct helix_uuid_t{
 	helix_uint32_t	Data1;
@@ -145,6 +149,12 @@ typedef struct {
 	int												D;
 }													helix_ratio;
 
+typedef struct helix_alloc_t{
+	void*											(*alloc)(struct helix_alloc_t*, void * ptr, size_t size, size_t nsize);
+}													helix_alloc_t;
+
+
+
 HELIX_API helix_uuid_t								HELIX_WIN32_ERROR_CATALOG;
 
 HELIX_API helix_uuid_t								HELIX_COM_ERROR_CATALOG;
@@ -158,7 +168,7 @@ HELIX_API helix_uuid_t								HELIX_UNITTEST_ERROR_CATALOG;
 HELIX_DECLARE_HANDLE(helix_t);
 
 //core apis
-HELIX_API helix_t helix_open(helix_errcode * errorCode);
+HELIX_API helix_t helix_open(helix_alloc_t *alloc,helix_errcode * errorCode);
 
 HELIX_API void helix_exit(helix_t helix);
 
