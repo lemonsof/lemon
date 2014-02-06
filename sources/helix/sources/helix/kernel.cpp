@@ -21,7 +21,7 @@ HELIX_PRIVATE int hardware_concurrency(){
 #endif 
 
 
-HELIX_API helix_t helix_open(helix_error_code * errorCode){
+HELIX_API helix_t helix_open(helix_errcode * errorCode){
 	
 	helix_reset_errorcode(*errorCode);
 
@@ -33,11 +33,11 @@ HELIX_API helix_t helix_open(helix_error_code * errorCode){
 		helix_user_errno(*errorCode, HELIX_RESOURCE_ERROR)
 	} else {
 
-		kernel->thread_list = (helix_t *)malloc(HELIX_HANDLE_SIZEOF(helix_t) * cpus);
+		kernel->thread_list = (HELIX_HANDLE_STRUCT_NAME(helix_t)*)malloc(HELIX_HANDLE_SIZEOF(helix_t) * cpus);
 
 		kernel->thread_list_counter = cpus;
 
-		init_main_thread(kernel, kernel->thread_list[0], errorCode);
+		init_main_runq(kernel, &kernel->thread_list[0], errorCode);
 
 		if (helix_failed(*errorCode)){
 			goto Error;
@@ -45,7 +45,7 @@ HELIX_API helix_t helix_open(helix_error_code * errorCode){
 
 		for (size_t i = 1; i < kernel->thread_list_counter; ++i){
 			
-			init_thread(kernel, kernel->thread_list[i], errorCode);
+			init_runq(kernel, &kernel->thread_list[i], errorCode);
 			
 			if (helix_failed(*errorCode)){
 				goto Error;
@@ -53,13 +53,13 @@ HELIX_API helix_t helix_open(helix_error_code * errorCode){
 		}
 	}
 
-	return kernel->thread_list[0];
+	return &kernel->thread_list[0];
 
 Error:
 	//make sure the man thread's helix_kenerl filed not null
-	kernel->thread_list[1]->helix_kenerl = kernel;
+	kernel->thread_list[1].helix_kenerl = kernel;
 
-	helix_close(kernel->thread_list[1]);
+	helix_close(&kernel->thread_list[1]);
 
 	return NULL;
 }
@@ -68,11 +68,11 @@ HELIX_API void helix_close(helix_t helix){
 
 	helix_kernel_t kernel = helix->helix_kenerl;
 
-	assert(helix == kernel->thread_list[0] && "only man thread can close the helix system");
+	assert(helix == &kernel->thread_list[0] && "only man thread can close the helix system");
 
 	for (size_t i = 1; i < kernel->thread_list_counter; ++i){
 
-		close_thread_and_join(kernel->thread_list[i]);
+		close_thread_and_join(&kernel->thread_list[i]);
 	}
 
 	free(kernel->thread_list);

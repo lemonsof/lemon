@@ -299,6 +299,7 @@ function(lemon_load_package PATH)
 	lemon_set_project_output_dir(${LEMON_PACKAGE_NAME})
 
 	if(LEMON_PACKAGE_UNITTEST_C_CXX_FILES)
+
 		include_directories(${LEMON_PACKAGE_UNITTEST_GEN_DIRECTORY})
 		set(LEMON_PACKAGE_UNITTEST_MAIN_CPP ${LEMON_PACKAGE_UNITTEST_GEN_DIRECTORY}/main.cpp)
 		configure_file(${LEMON_CMAKE_ROOT}/unittest-main.cpp.in ${LEMON_PACKAGE_UNITTEST_MAIN_CPP})

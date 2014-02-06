@@ -14,8 +14,8 @@
 HELIX_DECLARE_HANDLE(helix_kernel_t);
 
 HELIX_IMPLEMENT_HANDLE(helix_kernel_t){
-	helix_t							*thread_list;
-	size_t							thread_list_counter;
+	HELIX_HANDLE_STRUCT_NAME(helix_t)		*thread_list;
+	size_t									thread_list_counter;
 };
 
 

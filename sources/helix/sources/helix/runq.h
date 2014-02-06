@@ -9,10 +9,11 @@
 #ifndef HELIX_THREAD_H
 #define HELIX_THREAD_H
 #include <helix/abi.h>
-#include <helix/kenerl.h>
 #include <helix/context/fcontext.h>
 
 HELIX_DECLARE_HANDLE(helix_actor_t);
+
+HELIX_DECLARE_HANDLE(helix_kernel_t);
 
 HELIX_DECLARE_HANDLE(helix_event_node_t);
 
@@ -26,6 +27,8 @@ HELIX_IMPLEMENT_HANDLE(helix_actor_t){
 	helix_actor_t						next;	
 
 	helix_event_node_t					event_list[HELIX_MAX_EVENTS];
+
+	helix_context_t						context;
 };
 
 HELIX_IMPLEMENT_HANDLE(helix_t){
@@ -40,20 +43,20 @@ HELIX_IMPLEMENT_HANDLE(helix_t){
 
 	helix_condition						*actor_list_condition_variable;
 
-	helix_context_t						context_t;
-
 	helix_actor_t						actor_list_header;
 
 	helix_actor_t						actor_list_tail;
+
+	helix_context_t						context;
 };
 
-HELIX_PRIVATE void init_main_thread(helix_kernel_t helix_kenerl, helix_t current, helix_error_code * errorCode);
+HELIX_PRIVATE void init_main_runq(helix_kernel_t helix_kenerl, helix_t current, helix_errcode * errorCode);
 
-HELIX_PRIVATE void init_thread(helix_kernel_t helix_kenerl, helix_t current, helix_error_code * errorCode);
+HELIX_PRIVATE void init_runq(helix_kernel_t helix_kenerl, helix_t current, helix_errcode * errorCode);
 
 HELIX_PRIVATE void close_thread_and_join(helix_t current);
 
-HELIX_PRIVATE void helix_thread_run(helix_t current);
+HELIX_PRIVATE void helix_dispatch(helix_t current);
 
 HELIX_PRIVATE helix_actor_t helix_actor_pop(helix_t current);
 

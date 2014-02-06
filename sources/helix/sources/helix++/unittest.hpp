@@ -232,7 +232,7 @@ namespace helix{namespace unittest{
 
 				return 2;
 			}
-			catch(const helix_error_code & e)
+			catch(const helix_errcode & e)
 			{
 				std::cerr << "catch the helix_error_info :\n\tfile:" << e.file << "\n\tlines:" << e.lines << std::endl;
 

@@ -1,7 +1,8 @@
 #include <assert.h>
 #include <helix/runq.h>
 
-HELIX_PRIVATE void init_main_thread(helix_kernel_t helix_kenerl, helix_t current, helix_error_code * ){
+HELIX_PRIVATE void init_main_runq(helix_kernel_t helix_kenerl, helix_t current, helix_errcode * ){
+	memset(current,0,HELIX_HANDLE_SIZEOF(helix_t));
 	current->helix_kenerl = helix_kenerl;
 	current->dispatch_thread = NULL;
 
@@ -10,9 +11,11 @@ HELIX_PRIVATE void init_main_thread(helix_kernel_t helix_kenerl, helix_t current
 	current->actor_list_condition_variable = helix_create_condition();
 }
 
-HELIX_PRIVATE void init_thread(helix_kernel_t helix_kenerl, helix_t current, helix_error_code * ){
+HELIX_PRIVATE void init_runq(helix_kernel_t helix_kenerl, helix_t current, helix_errcode * ){
+	memset(current, 0, HELIX_HANDLE_SIZEOF(helix_t));
 	current->helix_kenerl = helix_kenerl;
-	current->dispatch_thread = helix_create_thread((void(*)(void*))&helix_thread_run, current);
+	current->helix_status = helix_running;
+	current->dispatch_thread = helix_create_thread((void(*)(void*))&helix_dispatch, current);
 	current->actor_list_mutex = helix_create_mutex();
 
 	current->actor_list_condition_variable = helix_create_condition();
@@ -35,7 +38,7 @@ HELIX_PRIVATE helix_actor_t helix_actor_pop(helix_t current){
 	return result;
 }
 
-HELIX_PRIVATE void helix_thread_run(helix_t current){
+HELIX_PRIVATE void helix_dispatch(helix_t current){
 	
 	helix_mutex_lock(current->actor_list_mutex);
 
@@ -47,9 +50,9 @@ HELIX_PRIVATE void helix_thread_run(helix_t current){
 			helix_condition_wait(current->actor_list_condition_variable, current->actor_list_mutex);
 			continue;
 		}
-
-
 	}
+
+	helix_mutex_unlock(current->actor_list_mutex);
 }
 
 HELIX_PRIVATE void close_thread_and_join(helix_t current){

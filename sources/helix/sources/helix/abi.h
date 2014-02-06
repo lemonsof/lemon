@@ -42,7 +42,7 @@
 
 #define helix_user_errno(errorinfo,ec)						{(errorinfo).error = ec;(errorinfo).file = __FILE__; (errorinfo).lines = __LINE__;}
 
-#define helix_declare_errinfo(name)							helix_errno_info name = {{0,0},0,0}
+#define helix_declare_errcode(name)							helix_errcode name = {{0,0},0,0}
 
 #define helix_mutex_lock(mutex)								mutex->lock(mutex)
 
@@ -70,7 +70,7 @@ typedef struct{
 
 }													helix_errno_t;
 
-typedef struct helix_error_code{
+typedef struct helix_errcode{
 
 	helix_errno_t									error;
 
@@ -78,9 +78,9 @@ typedef struct helix_error_code{
 
 	int												lines;
 
-	struct helix_error_code							*cause;
+	struct helix_errcode							*cause;
 
-}													helix_error_code;
+}													helix_errcode;
 
 typedef struct{
 
@@ -156,13 +156,13 @@ HELIX_API helix_uuid_t								HELIX_UNITTEST_ERROR_CATALOG;
 HELIX_DECLARE_HANDLE(helix_t);
 
 //core apis
-HELIX_API helix_t helix_open(helix_error_code * errorCode);
+HELIX_API helix_t helix_open(helix_errcode * errorCode);
 
 HELIX_API void helix_exit(helix_t helix);
 
 HELIX_API void helix_close(helix_t helix);
 
-HELIX_API helix_error_code * helix_lasterror(helix_t helix);
+HELIX_API helix_errcode * helix_lasterror(helix_t helix);
 
 HELIX_API uintptr_t helix_go(helix_t helix, void(*f)(helix_t, void*), void* userdata);
 
