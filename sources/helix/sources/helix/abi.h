@@ -11,6 +11,7 @@
 #include <helix/configure.h>
 
 #define HELIX_MAX_EVENTS									16
+#define HELIX_STACK_SIZE									1024
 //////////////////////////////////////////////////////////////////////////
 
 #define HELIX_HANDLE_STRUCT_NAME(name) name##__
@@ -131,6 +132,7 @@ typedef struct{
 
 typedef struct helix_thread{
 	uintptr_t										(*pid)(helix_thread*);
+	void											(*join)(helix_thread*);
 }													helix_thread;
 
 typedef enum {

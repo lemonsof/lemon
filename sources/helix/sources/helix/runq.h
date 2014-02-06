@@ -28,7 +28,10 @@ HELIX_IMPLEMENT_HANDLE(helix_actor_t){
 
 	helix_event_node_t					event_list[HELIX_MAX_EVENTS];
 
-	helix_context_t						context;
+	union{
+		helix_context_t					obj;
+		helix_context_t*				ptr;
+	}									context;
 };
 
 HELIX_IMPLEMENT_HANDLE(helix_t){
@@ -57,6 +60,8 @@ HELIX_PRIVATE void init_runq(helix_kernel_t helix_kenerl, helix_t current, helix
 HELIX_PRIVATE void close_thread_and_join(helix_t current);
 
 HELIX_PRIVATE void helix_dispatch(helix_t current);
+
+HELIX_PRIVATE void helix_main_dispatch(helix_t current);
 
 HELIX_PRIVATE helix_actor_t helix_actor_pop(helix_t current);
 

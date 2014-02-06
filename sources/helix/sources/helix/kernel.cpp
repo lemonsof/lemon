@@ -25,41 +25,48 @@ HELIX_API helix_t helix_open(helix_errcode * errorCode){
 	
 	helix_reset_errorcode(*errorCode);
 
-	int cpus = hardware_concurrency() + 1;
+	int cpus = hardware_concurrency();
 
-	helix_kernel_t kernel = (helix_kernel_t)malloc(HELIX_HANDLE_SIZEOF(helix_kernel_t));
+	size_t blocksize = HELIX_HANDLE_SIZEOF(helix_kernel_t) + HELIX_STACK_SIZE;
 
-	if (kernel == NULL){
-		helix_user_errno(*errorCode, HELIX_RESOURCE_ERROR)
-	} else {
+	void * block = malloc(blocksize);
 
-		kernel->thread_list = (HELIX_HANDLE_STRUCT_NAME(helix_t)*)malloc(HELIX_HANDLE_SIZEOF(helix_t) * cpus);
+	if (block == NULL){
+		helix_user_errno(*errorCode, HELIX_RESOURCE_ERROR);
+		return NULL;
+	}
 
-		kernel->thread_list_counter = cpus;
+	memset(block, 0, blocksize);
 
-		init_main_runq(kernel, &kernel->thread_list[0], errorCode);
+	block = (helix_byte_t*)block + HELIX_STACK_SIZE;
+
+	helix_kernel_t kernel = (helix_kernel_t)block;
+
+	kernel->thread_list = (HELIX_HANDLE_STRUCT_NAME(helix_t)*)malloc(HELIX_HANDLE_SIZEOF(helix_t) * cpus);
+
+	kernel->thread_list_counter = cpus;
+
+	init_main_runq(kernel, &kernel->main_thread, errorCode);
+
+	if (helix_failed(*errorCode)){
+		goto Error;
+	}
+
+	for (size_t i = 0; i < kernel->thread_list_counter; ++i){
+
+		init_runq(kernel, &kernel->thread_list[i], errorCode);
 
 		if (helix_failed(*errorCode)){
 			goto Error;
 		}
-
-		for (size_t i = 1; i < kernel->thread_list_counter; ++i){
-			
-			init_runq(kernel, &kernel->thread_list[i], errorCode);
-			
-			if (helix_failed(*errorCode)){
-				goto Error;
-			}
-		}
 	}
-
-	return &kernel->thread_list[0];
+	return &kernel->main_thread;
 
 Error:
 	//make sure the man thread's helix_kenerl filed not null
-	kernel->thread_list[1].helix_kenerl = kernel;
+	kernel->main_thread.helix_kenerl = kernel;
 
-	helix_close(&kernel->thread_list[1]);
+	helix_close(&kernel->main_thread);
 
 	return NULL;
 }
@@ -68,14 +75,16 @@ HELIX_API void helix_close(helix_t helix){
 
 	helix_kernel_t kernel = helix->helix_kenerl;
 
-	assert(helix == &kernel->thread_list[0] && "only man thread can close the helix system");
+	assert(helix == &kernel->main_thread && "only man thread can close the helix system");
 
-	for (size_t i = 1; i < kernel->thread_list_counter; ++i){
+	for (size_t i = 0; i < kernel->thread_list_counter; ++i){
 
 		close_thread_and_join(&kernel->thread_list[i]);
 	}
 
 	free(kernel->thread_list);
 
-	free(kernel);
+	void * block = (helix_byte_t*)kernel - HELIX_STACK_SIZE;
+
+	free(block);
 }
