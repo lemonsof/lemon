@@ -117,17 +117,6 @@ typedef struct{
 	helix_duration									time_since_epoch;
 }													helix_time_point;
 
-typedef struct helix_mutex{
-	void											(*lock)(struct helix_mutex*);
-	bool											(*try_lock)(struct helix_mutex*);
-	void											(*unlock)(struct helix_mutex*);
-}													helix_mutex;
-
-typedef struct helix_condition{
-	void											(*wait)(struct helix_condition*, helix_mutex*);
-	void											(*notify_one)(struct helix_condition*);
-	void											(*notify_all)(struct helix_condition*);
-}													helix_condition;
 
 typedef struct{
 	uintptr_t										id;
@@ -178,7 +167,7 @@ HELIX_API helix_errcode * helix_lasterror(helix_t helix);
 
 HELIX_API uintptr_t helix_go(helix_t helix, void(*f)(helix_t, void*), void* userdata);
 
-HELIX_API void helix_event_add(helix_t helix, helix_event *event, helix_mutex *mutex);
+HELIX_API void helix_event_add(helix_t helix, helix_event *event);
 
 HELIX_API helix_event* helix_event_remove(helix_t helix, uintptr_t eventid);
 
@@ -191,19 +180,6 @@ HELIX_API void helix_notify(helix_t helix, uintptr_t target, uintptr_t eventid);
 HELIX_API void helix_notify_one(helix_t helix, uintptr_t eventid);
 
 HELIX_API void helix_notify_all(helix_t helix, uintptr_t eventid);
-
-//utility apis
-HELIX_API helix_mutex* helix_create_mutex();
-
-HELIX_API void helix_release_mutex(helix_mutex * mutex);
-
-HELIX_API helix_condition* helix_create_condition();
-
-HELIX_API void helix_release_condition(helix_condition * condition);
-
-HELIX_API helix_thread* helix_create_thread(void(*f)(void*),void* param);
-
-HELIX_API void helix_release_thread(helix_thread * thread);
 
 HELIX_API void helix_duration_cast(helix_duration * source,helix_duration* target);
 
