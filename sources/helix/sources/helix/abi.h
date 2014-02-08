@@ -138,9 +138,6 @@ typedef struct {
 	int												D;
 }													helix_ratio;
 
-typedef struct helix_alloc_t{
-	void*											(*alloc)(struct helix_alloc_t*, void * ptr, size_t size, size_t nsize);
-}													helix_alloc_t;
 
 
 
@@ -157,7 +154,7 @@ HELIX_API helix_uuid_t								HELIX_UNITTEST_ERROR_CATALOG;
 HELIX_DECLARE_HANDLE(helix_t);
 
 //core apis
-HELIX_API helix_t helix_open(helix_alloc_t *alloc,helix_errcode * errorCode);
+HELIX_API helix_t helix_open(helix_errcode * errorCode);
 
 HELIX_API void helix_exit(helix_t helix);
 

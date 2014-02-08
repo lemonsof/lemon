@@ -1,4 +1,7 @@
 #include <helix/abi.h>
+#include <helix/runtimes.hpp>
+
+using namespace helix::impl;
 
 helix_uuid_t LEMON_WIN32_ERROR_CATALOG = { 0x3eb0937e, 0xdbe9, 0x4946, { 0xa0, 0xb4, 0x44, 0xc4, 0x19, 0xe9, 0x46, 0xf7 } };
 
@@ -20,4 +23,20 @@ HELIX_API void helix_duration_cast(helix_duration * source, helix_duration* targ
 	helix_ratio rhs = __duration_ratios[target->duration_t];
 
 	target->count = source->count * lhs.D * rhs.N / lhs.N / rhs.D;
+}
+
+HELIX_API helix_t helix_open(helix_errcode * errorCode){
+
+	try{
+	
+		Runtimes *runtimes = new Runtimes();
+
+		return reinterpret_cast<helix_t>(runtimes->mainActor());
+
+	} catch (const helix_errcode & ec) {
+
+		*errorCode = ec;
+		return nullptr;
+	}
+	
 }
