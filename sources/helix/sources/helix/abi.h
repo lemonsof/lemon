@@ -11,7 +11,9 @@
 #include <helix/configure.h>
 
 #define HELIX_MAX_EVENTS									16
-#define HELIX_STACK_SIZE									1024
+#define HELIX_STACK_SIZE									1024 * 56
+#define HELIX_INVALID_HANDLE								uintptr_t(-1)
+#define HELIX_TICKS_OF_MILLISECOND							100
 //////////////////////////////////////////////////////////////////////////
 
 #define HELIX_HANDLE_STRUCT_NAME(name) name##__
@@ -83,8 +85,6 @@ typedef struct helix_errcode{
 
 	int												lines;
 
-	struct helix_errcode							*cause;
-
 }													helix_errcode;
 
 typedef struct{
@@ -123,22 +123,14 @@ typedef struct{
 	void*											data;
 }													helix_event;
 
-typedef struct helix_thread{
-	uintptr_t										(*pid)(helix_thread*);
-	void											(*join)(helix_thread*);
-}													helix_thread;
-
-typedef enum {
-	helix_running,
-	helix_exited
-}													helix_status_t;
-
 typedef struct {
 	int												N;
 	int												D;
 }													helix_ratio;
 
-
+typedef struct helix_alloc_t{
+	void*											(*alloc)(struct helix_alloc_t*, void * ptr, size_t size, size_t nsize);
+}													helix_alloc_t;
 
 
 HELIX_API helix_uuid_t								HELIX_WIN32_ERROR_CATALOG;
@@ -154,15 +146,15 @@ HELIX_API helix_uuid_t								HELIX_UNITTEST_ERROR_CATALOG;
 HELIX_DECLARE_HANDLE(helix_t);
 
 //core apis
-HELIX_API helix_t helix_open(helix_errcode * errorCode);
+HELIX_API helix_t helix_open(helix_alloc_t * alloc,helix_errcode * errorCode);
 
 HELIX_API void helix_exit(helix_t helix);
-
+//only call in the same thread which create the helix
 HELIX_API void helix_close(helix_t helix);
 
 HELIX_API helix_errcode * helix_lasterror(helix_t helix);
 
-HELIX_API uintptr_t helix_go(helix_t helix, void(*f)(helix_t, void*), void* userdata);
+HELIX_API uintptr_t helix_go(helix_t helix, void(*f)(helix_t, void*), void* userdata,size_t stacksize=HELIX_STACK_SIZE);
 
 HELIX_API void helix_event_add(helix_t helix, helix_event *event);
 

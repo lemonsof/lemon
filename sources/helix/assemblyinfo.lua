@@ -18,6 +18,10 @@ assembly =
 	   };
 
 	   {
+	   		name = "EXIT_ERROR";
+	   };
+
+	   {
 	   		name = "NOT_IMPLEMENT";
 	   };
 
