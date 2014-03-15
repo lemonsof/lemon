@@ -97,6 +97,26 @@ namespace helix{ namespace impl{
 		}
 	}
 
+	bool runtimes::__notify(basic_actor_t * actor,uintptr_t eventid)
+	{
+		if (actor->notify(eventid))
+		{
+			if (actor->status() == actor_status::sleeping)
+			{
+				if (!actor->poll_first_event())
+				{
+					assert(false && "not here");
+				}
+
+				actor->Q()->dispatch_one(actor);
+			}
+
+			return true;
+		}
+
+		return false;
+	}
+
 	void runtimes::notify(uintptr_t target,uintptr_t eventid)
 	{
 		std::unique_lock<std::mutex> lock(_mutex);
@@ -105,18 +125,18 @@ namespace helix{ namespace impl{
 
 		if(iter != _actors.end())
 		{
-			if(iter->second->notify(eventid))
-			{
-				if(iter->second->status() == actor_status::sleeping)
-				{
-					if(!iter->second->poll_first_event())
-					{
-						assert(false && "not here");
-					}
-
-					iter->second->Q()->dispatch_one(iter->second);
-				} 
-			}
+			__notify(iter->second,eventid);
 		}
+	}
+
+	void runtimes::notify_all(uintptr_t eventid)
+	{
+		std::unique_lock<std::mutex> lock(_mutex);
+
+		auto range = _eventwaiters.equal_range(eventid);
+
+		std::for_each(range.first,range.second,[=](event_waiters::value_type & val){
+			__notify(val.second,eventid);
+		});
 	}
 } }

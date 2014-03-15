@@ -47,7 +47,7 @@ namespace helix{ namespace impl{
 		return false;
 	}
 
-	void basic_actor_t::add_event(helix_event * source)
+	bool basic_actor_t::add_event(helix_event * source)
 	{
 		actor_event_t * last_null = nullptr;
 
@@ -58,7 +58,7 @@ namespace helix{ namespace impl{
 				if(event.id == source->id)
 				{
 					event.data = source->data;
-					return;
+					return false;
 				}
 			}
 			else
@@ -81,6 +81,8 @@ namespace helix{ namespace impl{
 		last_null->data = source->data;
 
 		last_null->id = source->id;
+
+		return true;
 	}
 
 	helix_event* basic_actor_t::remove_event(uintptr_t eventid)

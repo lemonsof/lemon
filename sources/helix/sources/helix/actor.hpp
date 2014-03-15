@@ -60,7 +60,7 @@ namespace helix{ namespace impl{
 
 		helix_event * get_event(){ return _current_event; }
 
-		void add_event(helix_event * event);
+		bool add_event(helix_event * event);
 
 		helix_event* remove_event(uintptr_t eventid);
 

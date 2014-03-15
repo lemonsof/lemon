@@ -166,8 +166,6 @@ HELIX_API helix_event* helix_event_poll(helix_t helix, helix_duration *duration)
 
 HELIX_API void helix_notify(helix_t helix, uintptr_t target, uintptr_t eventid);
 
-HELIX_API void helix_notify_one(helix_t helix, uintptr_t eventid);
-
 HELIX_API void helix_notify_all(helix_t helix, uintptr_t eventid);
 
 HELIX_API void helix_duration_cast(helix_duration * source,helix_duration* target);

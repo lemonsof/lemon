@@ -120,3 +120,20 @@ HELIX_API helix_event* helix_event_poll(helix_t helix, helix_duration *duration)
 
 	return actor->get_event();
 }
+
+
+HELIX_API void helix_notify(helix_t helix, uintptr_t target, uintptr_t eventid){
+	basic_actor_t * actor = reinterpret_cast<basic_actor_t*>(helix);
+
+	actor->reset_lasterror();
+
+	actor->rt()->notify(target,eventid);
+}
+
+HELIX_API void helix_notify_all(helix_t helix, uintptr_t eventid){
+	basic_actor_t * actor = reinterpret_cast<basic_actor_t*>(helix);
+
+	actor->reset_lasterror();
+
+	actor->rt()->notify_all(eventid);
+}
