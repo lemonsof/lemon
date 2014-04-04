@@ -39,10 +39,10 @@
  * **************************************************************************************/
 
 .text
-.globl sof_context_jump
-.type sof_context_jump,@function
+.globl helix_context_jump
+.type helix_context_jump,@function
 .align 16
-sof_context_jump:
+helix_context_jump:
     movq     %rbx,       (%rdi)         /* save RBX */
     movq     %r12,       0x8(%rdi)      /* save R12 */
     movq     %r13,       0x10(%rdi)     /* save R13 */
@@ -79,4 +79,4 @@ sof_context_jump:
     movq     %rdx,        %rdi      /* use third arg as first arg in context function */
 
     jmp      *%rcx                  /* indirect jump to context */
-.size sof_context_jump,.-sof_context_jump
+.size helix_context_jump,.-helix_context_jump

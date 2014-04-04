@@ -1,3 +1,4 @@
+#include <cassert>
 #include <helix/runq.hpp>
 #include <helix/actor.hpp>
 #include <helix/assembly.h>

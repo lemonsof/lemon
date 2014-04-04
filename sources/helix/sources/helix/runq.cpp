@@ -1,3 +1,4 @@
+#include <cassert>
 #include <functional>
 #include <helix/runq.hpp>
 #include <helix/runtimes.hpp>

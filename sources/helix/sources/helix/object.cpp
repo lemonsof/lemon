@@ -5,7 +5,7 @@ namespace helix{ namespace impl{
 	{
 		if (size == 0)
 		{
-			return nullptr;
+			throw std::bad_alloc();
 		}
 
 		void *block = helix_alloc(alloc, size);
@@ -32,7 +32,7 @@ namespace helix{ namespace impl{
 	{
 		if (size == 0)
 		{
-			return nullptr;
+			throw std::bad_alloc();
 		}
 
 		void *block = helix_alloc(alloc, size);

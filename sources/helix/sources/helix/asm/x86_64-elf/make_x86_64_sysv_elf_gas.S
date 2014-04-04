@@ -39,10 +39,10 @@
  * **************************************************************************************/
 
 .text
-.globl sof_make_context
-.type sof_make_context,@function
+.globl helix_make_context
+.type helix_make_context,@function
 .align 16
-sof_make_context:
+helix_make_context:
     leaq   -0x58(%rdi),    %rax        /* reserve space for fcontext_t at top of context stack */
 
     /* shift address in RAX to lower 16 byte boundary */
@@ -70,5 +70,5 @@ finish:
     xorq    %rdi,           %rdi       /* exit code is zero */
     call   _exit@PLT                   /* exit application */
     hlt
-.size sof_make_context,.-sof_make_context
+.size helix_make_context,.-helix_make_context
 

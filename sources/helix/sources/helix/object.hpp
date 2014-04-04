@@ -20,6 +20,16 @@ namespace helix{ namespace impl{
 	{
 	public:
 		virtual ~object(){}
+                
+                static void* operator new(std::size_t size)
+                {
+                    throw std::bad_alloc();
+                }
+                
+                static void operator delete(void * block)
+                {
+                    throw std::bad_alloc();
+                }
 
 		static void* operator new(std::size_t size, helix_alloc_t* alloc);
 

@@ -1,3 +1,4 @@
+#include <cassert>
 #include <helix/assembly.h>
 #include <helix/runtimes.hpp>
 
