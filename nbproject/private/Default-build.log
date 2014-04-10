@@ -1,0 +1,25 @@
+[  6%] run assembly info compiler ...
+[assembly info compiler] load assembly information define file :/home/yayanyang/workspace/lemon/sources/helix//assemblyinfo.lua
+[assembly info compiler] load assembly information define file :/home/yayanyang/workspace/lemon/sources/helix//assemblyinfo.lua -- success
+parse version string: 1.0.*
+real version string: 1.0.99.22104
+Scanning dependencies of target helix
+[ 13%] Building CXX object CMakeFiles/helix.dir/sources/helix/sources/helix/datetime.cpp.o
+[ 20%] Building CXX object CMakeFiles/helix.dir/sources/helix/sources/helix/object.cpp.o
+[ 26%] Building CXX object CMakeFiles/helix.dir/sources/helix/sources/helix/actor.cpp.o
+[ 33%] Building CXX object CMakeFiles/helix.dir/sources/helix/sources/helix/timewheel.cpp.o
+[ 40%] Building CXX object CMakeFiles/helix.dir/sources/helix/sources/helix/alloc.cpp.o
+[ 46%] Building CXX object CMakeFiles/helix.dir/sources/helix/sources/helix/runq.cpp.o
+[ 53%] Building CXX object CMakeFiles/helix.dir/sources/helix/sources/helix/stack.cpp.o
+[ 60%] Building CXX object CMakeFiles/helix.dir/sources/helix/sources/helix/runtimes.cpp.o
+[ 66%] Building CXX object CMakeFiles/helix.dir/sources/helix/sources/helix/abi.cpp.o
+[ 73%] Building CXX object CMakeFiles/helix.dir/build/sources/helix/assembly.cpp.o
+[ 80%] Building ASM object CMakeFiles/helix.dir/sources/helix/sources/helix/asm/x86_64-elf/jump_x86_64_sysv_elf_gas.S.o
+[ 86%] Building ASM object CMakeFiles/helix.dir/sources/helix/sources/helix/asm/x86_64-elf/make_x86_64_sysv_elf_gas.S.o
+Linking CXX shared library build/lib/libhelix.so
+[ 86%] Built target helix
+Scanning dependencies of target unittest.helix
+[ 93%] Building CXX object CMakeFiles/unittest.helix.dir/sources/helix/unittest/unittest-helix-actor.cpp.o
+[100%] Building CXX object CMakeFiles/unittest.helix.dir/build/unittest/helix/main.cpp.o
+Linking CXX executable build/bin/unittest.helix
+[100%] Built target unittest.helix

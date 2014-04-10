@@ -16,6 +16,7 @@
 #include <helix/runq.hpp>
 #include <unordered_map>
 #include <helix/timewheel.hpp>
+#include <helix/epoll.hpp>
 
 namespace helix{ namespace impl{
 
@@ -36,6 +37,8 @@ namespace helix{ namespace impl{
 		uintptr_t create_go(void(*f)(helix_t, void*), void* userdata,size_t stacksize);
 
 		void notify(uintptr_t target,uintptr_t eventid);
+                
+                void notify_one(uintptr_t eventid);
 
 		void notify_all(uintptr_t eventid);
 
@@ -86,7 +89,8 @@ namespace helix{ namespace impl{
 		}
 
 		timewheel_t & timewheel(){ return _timewheel; }
-
+                
+                io_service_t & io_service() { return _io_service; }
 	private:
 
 		bool __notify(basic_actor_t * actor,uintptr_t eventid);
@@ -94,16 +98,17 @@ namespace helix{ namespace impl{
 		void balance_dispatch(basic_actor_t * actor);
 
 	private:
-		bool												_status;
+		bool											_status;
 		volatile uintptr_t									_seq;
 		helix_alloc_t										*_alloc;
 		main_actor_t										_main_actor;
-		main_runq											_main_runq;
+		main_runq										_main_runq;
 		std::vector<runq*>									_runqs;
-		std::unordered_map<uintptr_t,basic_actor_t*>		_actors;
-		std::mutex											_mutex;
-		timewheel_t											_timewheel;
+		std::unordered_map<uintptr_t,basic_actor_t*>                                            _actors;
+		std::mutex										_mutex;
+		timewheel_t										_timewheel;
 		event_waiters										_eventwaiters;
+                io_service_t                                                                            _io_service;
 	};
 
 } }

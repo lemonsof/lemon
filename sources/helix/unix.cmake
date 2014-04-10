@@ -5,4 +5,4 @@ include(CheckIncludeFiles)
 #######################################################################################################################################
 
 
-list(APPEND LEMON_PACKAGE_CONFIG_LINK_LIBRARIES dl rt)
+list(APPEND LEMON_PACKAGE_CONFIG_LINK_LIBRARIES dl rt pthread)

@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="94">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <df root="." name="0">
+      <df name="build">
+        <df name="build">
+          <df name="sources">
+            <df name="helix">
+              <in>assembly.cpp</in>
+            </df>
+          </df>
+          <df name="unittest">
+            <df name="helix">
+              <in>main.cpp</in>
+            </df>
+          </df>
+        </df>
+      </df>
+      <df name="sources">
+        <df name="helix">
+          <df name="sources">
+            <df name="helix">
+              <in>abi.cpp</in>
+              <in>actor.cpp</in>
+              <in>alloc.cpp</in>
+              <in>datetime.cpp</in>
+              <in>io_service_epoll.cpp</in>
+              <in>io_service_epoll.hpp</in>
+              <in>object.cpp</in>
+              <in>runq.cpp</in>
+              <in>runtimes.cpp</in>
+              <in>socket.hpp</in>
+              <in>stack.cpp</in>
+              <in>timewheel.cpp</in>
+            </df>
+          </df>
+          <df name="unittest">
+            <in>unittest-helix-actor.cpp</in>
+          </df>
+        </df>
+      </df>
+    </df>
+    <logicalFolder name="ExternalFiles"
+                   displayName="重要文件"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>CMakeLists.txt</itemPath>
+      <itemPath>build/Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <sourceFolderFilter>^(nbproject)$</sourceFolderFilter>
+  <sourceRootList>
+    <Elem>.</Elem>
+  </sourceRootList>
+  <projectmakefile>build/Makefile</projectmakefile>
+  <confs>
+    <conf name="Default" type="0">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>false</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <flagsDictionary>
+        <element flagsID="0" commonFlags="-std=c++11"/>
+        <element flagsID="1" commonFlags="-std=c++11 -fPIC"/>
+      </flagsDictionary>
+      <codeAssistance>
+      </codeAssistance>
+      <makefileType>
+        <makeTool>
+          <buildCommandWorkingDir>build</buildCommandWorkingDir>
+          <buildCommand>${MAKE} -f Makefile</buildCommand>
+          <cleanCommand>${MAKE} -f Makefile clean</cleanCommand>
+          <executablePath></executablePath>
+          <cTool>
+            <standard>3</standard>
+          </cTool>
+          <ccTool>
+            <standard>8</standard>
+            <incDir>
+              <pElem>sources/helix/sources</pElem>
+              <pElem>build/build/sources</pElem>
+              <pElem>build/build/sources/helix</pElem>
+              <pElem>build/build/unittest/helix</pElem>
+              <pElem>build</pElem>
+            </incDir>
+          </ccTool>
+        </makeTool>
+      </makefileType>
+      <item path="build/build/sources/helix/assembly.cpp"
+            ex="false"
+            tool="1"
+            flavor2="8">
+      </item>
+      <item path="build/build/unittest/helix/main.cpp"
+            ex="false"
+            tool="1"
+            flavor2="8">
+      </item>
+      <folder path="0/build/build/sources">
+        <ccTool>
+          <preprocessorList>
+            <Elem>HELIX_BUILD</Elem>
+            <Elem>helix_EXPORTS</Elem>
+          </preprocessorList>
+        </ccTool>
+      </folder>
+      <folder path="0/build/build/unittest">
+        <ccTool>
+          <preprocessorList>
+            <Elem>UNITTEST_HELIX_BUILD</Elem>
+          </preprocessorList>
+        </ccTool>
+      </folder>
+      <folder path="0/sources/helix/sources">
+        <ccTool>
+          <preprocessorList>
+            <Elem>HELIX_BUILD</Elem>
+            <Elem>helix_EXPORTS</Elem>
+          </preprocessorList>
+        </ccTool>
+      </folder>
+      <folder path="0/sources/helix/unittest">
+        <ccTool>
+          <preprocessorList>
+            <Elem>UNITTEST_HELIX_BUILD</Elem>
+          </preprocessorList>
+        </ccTool>
+      </folder>
+      <item path="sources/helix/sources/helix/abi.cpp"
+            ex="false"
+            tool="1"
+            flavor2="8">
+      </item>
+      <item path="sources/helix/sources/helix/actor.cpp"
+            ex="false"
+            tool="1"
+            flavor2="8">
+      </item>
+      <item path="sources/helix/sources/helix/alloc.cpp"
+            ex="false"
+            tool="1"
+            flavor2="8">
+      </item>
+      <item path="sources/helix/sources/helix/datetime.cpp"
+            ex="false"
+            tool="1"
+            flavor2="8">
+      </item>
+      <item path="sources/helix/sources/helix/io_service_epoll.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="sources/helix/sources/helix/io_service_epoll.hpp"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="sources/helix/sources/helix/object.cpp"
+            ex="false"
+            tool="1"
+            flavor2="8">
+      </item>
+      <item path="sources/helix/sources/helix/runq.cpp"
+            ex="false"
+            tool="1"
+            flavor2="8">
+      </item>
+      <item path="sources/helix/sources/helix/runtimes.cpp"
+            ex="false"
+            tool="1"
+            flavor2="8">
+      </item>
+      <item path="sources/helix/sources/helix/socket.hpp"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="sources/helix/sources/helix/stack.cpp"
+            ex="false"
+            tool="1"
+            flavor2="8">
+      </item>
+      <item path="sources/helix/sources/helix/timewheel.cpp"
+            ex="false"
+            tool="1"
+            flavor2="8">
+      </item>
+      <item path="sources/helix/unittest/unittest-helix-actor.cpp"
+            ex="false"
+            tool="1"
+            flavor2="8">
+      </item>
+    </conf>
+  </confs>
+</configurationDescriptor>
