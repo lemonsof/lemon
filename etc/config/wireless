@@ -1,0 +1,23 @@
+config wifi-device  radio0
+	option type     mac80211
+	option channel  11
+	option macaddr	00:0f:02:44:bd:ae
+	option hwmode	11ng	
+	option htmode	HT40-
+	list ht_capab	GF
+	list ht_capab	SHORT-GI-20
+	list ht_capab	SHORT-GI-40
+	list ht_capab	TX-STBC
+	list ht_capab	RX-STBC12
+	# REMOVE THIS LINE TO ENABLE WIFI:
+	option disabled 0
+	option noscan	1       
+        option country  CN
+
+config wifi-iface
+	option device   radio0
+	option network  lan
+	option mode     ap
+	option ssid     TianHao_44BDAE
+	option encryption none
+
