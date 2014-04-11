@@ -40,6 +40,8 @@ namespace helix{ namespace impl{
 
 		basic_actor_t();
 
+        basic_actor_t(const std::string & name);
+
 		virtual ~basic_actor_t(){}
 
 		runtimes* rt(){ return _runtimes; }
@@ -87,6 +89,8 @@ namespace helix{ namespace impl{
 			helix_reset_errorcode(_lasterror);
 		}
 
+        const std::string &name() const { return _name; }
+
 	protected:
 		
 		void exit(){ _exited = true; }
@@ -107,12 +111,15 @@ namespace helix{ namespace impl{
 		helix_event								*_current_event;
 		actor_event_t							_events[HELIX_MAX_EVENTS];
 		helix_errcode							_lasterror;
+        std::string                             _name;
 	};
 
 	class actor_t : public basic_actor_t
 	{
 	public:
 		actor_t(runtimes * rt,void(*f)(helix_t,void*),void * userdata,size_t stacksize,uintptr_t handle);
+
+        actor_t(runtimes * rt, void(*f)(helix_t, void*), void * userdata, size_t stacksize, uintptr_t handle,const std::string & name);
 
 		~actor_t();
 		

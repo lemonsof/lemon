@@ -39,13 +39,13 @@ HELIX_API void helix_close(helix_t helix) {
     release(actor->rt(), actor->rt()->alloc());
 }
 
-HELIX_API uintptr_t helix_go(helix_t helix, void(*f)(helix_t, void*), void* userdata, size_t stacksize) {
+HELIX_API uintptr_t helix_go(helix_t helix, void(*f)(helix_t, void*), void* userdata, const char*name,size_t stacksize) {
     basic_actor_t * actor = reinterpret_cast<basic_actor_t*> (helix);
 
     try {
         actor->reset_lasterror();
 
-        return actor->rt()->create_go(f, userdata, stacksize);
+        return actor->rt()->create_go(f, userdata, name, stacksize);
 
     } catch (const helix_errcode & e) {
         actor->lasterror(e);

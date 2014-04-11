@@ -151,7 +151,7 @@ HELIX_API void helix_close(helix_t helix);
 
 HELIX_API helix_errcode * helix_lasterror(helix_t helix);
 
-HELIX_API uintptr_t helix_go(helix_t helix, void(*f)(helix_t, void*), void* userdata, size_t stacksize = HELIX_STACK_SIZE);
+HELIX_API uintptr_t helix_go(helix_t helix, void(*f)(helix_t, void*), void* userdata, const char*name = NULL,size_t stacksize = HELIX_STACK_SIZE);
 
 HELIX_API void helix_event_add(helix_t helix, helix_event *event);
 

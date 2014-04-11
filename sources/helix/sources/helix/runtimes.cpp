@@ -29,6 +29,11 @@ namespace helix{ namespace impl{
 		{
 			_actors.erase(actor->handle());
 
+            if (!actor->name().empty())
+            {
+                _named_actors.erase(actor->name());
+            }
+
 			release(actor,_alloc);
 			return;
 		}
@@ -54,7 +59,7 @@ namespace helix{ namespace impl{
 		
 	}
 
-	uintptr_t runtimes::create_go(void(*f)(helix_t, void*), void* userdata,size_t stacksize)
+	uintptr_t runtimes::create_go(void(*f)(helix_t, void*), void* userdata,const char*name,size_t stacksize)
 	{
 		std::unique_lock<std::mutex> lock(_mutex);
 
@@ -73,7 +78,26 @@ namespace helix{ namespace impl{
 
 			if(_actors.count(handle) == 0 && handle != HELIX_INVALID_HANDLE)
 			{
-				basic_actor_t * actor = new(_alloc) actor_t(this,f,userdata,stacksize,handle);
+
+                basic_actor_t * actor = nullptr;
+
+                if (name != NULL)
+                {
+                    auto iter = _named_actors.find(name);
+
+                    if (iter != _named_actors.end()){
+                        return iter->second;
+                    }
+
+                    actor = new(_alloc)actor_t(this, f, userdata, stacksize, handle, name);
+
+                    _named_actors.insert(std::make_pair(name, handle));
+                    
+                }
+                else
+                {
+                    actor = new(_alloc)actor_t(this, f, userdata, stacksize, handle);
+                }
 
 				_actors[handle] = actor;
 
@@ -83,6 +107,30 @@ namespace helix{ namespace impl{
 			}
 		}
 	}
+
+    helix_event* runtimes::remove_event(basic_actor_t * actor, uintptr_t eventid)
+    {
+        std::unique_lock<std::mutex> lock(_mutex);
+
+        helix_event* result = actor->remove_event(eventid);
+
+        if (result != nullptr)
+        {
+            auto range = _event_block_queue.equal_range(eventid);
+
+            auto iter = std::find_if(range.first, range.second, [=](event_block_queue::value_type & val){
+                return val.second == actor;
+            });
+
+
+            if (range.second != iter)
+            {
+                _event_block_queue.erase(iter);
+            }
+        }
+
+        return result;
+    }
 
 	void runtimes::balance_dispatch(basic_actor_t * actor)
 	{
@@ -134,9 +182,9 @@ namespace helix{ namespace impl{
 	{
 		std::unique_lock<std::mutex> lock(_mutex);
 
-		auto range = _eventwaiters.equal_range(eventid);
+		auto range = _event_block_queue.equal_range(eventid);
 
-		std::for_each(range.first,range.second,[=](event_waiters::value_type & val){
+		std::for_each(range.first,range.second,[=](event_block_queue::value_type & val){
 			__notify(val.second,eventid);
 		});
 	}
@@ -145,7 +193,7 @@ namespace helix{ namespace impl{
 	{
 		std::unique_lock<std::mutex> lock(_mutex);
 
-		auto range = _eventwaiters.equal_range(eventid);
+		auto range = _event_block_queue.equal_range(eventid);
                 
                 for(auto iter = range.first; iter != range.second; ++ iter){
                     if(__notify(iter->second,eventid)){

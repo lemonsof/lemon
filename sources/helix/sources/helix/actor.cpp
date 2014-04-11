@@ -13,6 +13,12 @@ namespace helix{ namespace impl{
 		_events[0].id = timewheel_t::event();
 	}
 
+    basic_actor_t::basic_actor_t(const std::string & name) 
+        :basic_actor_t()
+    {
+        _name = name;
+    }
+
 	bool basic_actor_t::notify(uintptr_t eventid)
 	{
 		for(actor_event_t &event:_events)
@@ -118,14 +124,23 @@ namespace helix{ namespace impl{
 		actor->call();
 	}
 
-	actor_t::actor_t(runtimes * rt,void(*f)(helix_t,void*),void * userdata,size_t stacksize,uintptr_t handle)
-		:_f(f),_userdata(userdata)
+	actor_t::actor_t(runtimes * rt,void(*f)(helix_t,void*),void * userdata,size_t stacksize,uintptr_t handle,const std::string & name)
+		:basic_actor_t(name),_f(f),_userdata(userdata)
 	{
 		basic_actor_t::rt(rt);
 		_stack.create(stacksize,rt->alloc());
 		basic_actor_t::context(helix_make_context(_stack,_stack.size(),(void(*)(intptr_t))__f));
 		basic_actor_t::handle(handle);
 	}
+
+    actor_t::actor_t(runtimes * rt, void(*f)(helix_t, void*), void * userdata, size_t stacksize, uintptr_t handle)
+        :_f(f), _userdata(userdata)
+    {
+        basic_actor_t::rt(rt);
+        _stack.create(stacksize, rt->alloc());
+        basic_actor_t::context(helix_make_context(_stack, _stack.size(), (void(*)(intptr_t))__f));
+        basic_actor_t::handle(handle);
+    }
 
 	actor_t::~actor_t()
 	{
