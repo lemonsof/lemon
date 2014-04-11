@@ -140,4 +140,17 @@ namespace helix{ namespace impl{
 			__notify(val.second,eventid);
 		});
 	}
+        
+        void runtimes::notify_one(uintptr_t eventid)
+	{
+		std::unique_lock<std::mutex> lock(_mutex);
+
+		auto range = _eventwaiters.equal_range(eventid);
+                
+                for(auto iter = range.first; iter != range.second; ++ iter){
+                    if(__notify(iter->second,eventid)){
+                        break;
+                    }
+                }
+	}
 } }
