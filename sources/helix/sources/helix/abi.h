@@ -106,6 +106,7 @@ typedef enum {
     helix_nanoseconds
 } helix_duration_t;
 
+
 typedef struct {
     helix_duration_t duration_t; /*the duration period type*/
     long count; /*the period internal count*/
@@ -129,7 +130,6 @@ typedef struct helix_alloc_t {
     void* (*alloc)(struct helix_alloc_t*, void * ptr, size_t size, size_t nsize);
 } helix_alloc_t;
 
-
 HELIX_API helix_uuid_t HELIX_WIN32_ERROR_CATALOG;
 
 HELIX_API helix_uuid_t HELIX_COM_ERROR_CATALOG;
@@ -141,8 +141,9 @@ HELIX_API helix_uuid_t HELIX_UNITTEST_ERROR_CATALOG;
 //////////////////////////////////////////////////////////////////////////
 
 HELIX_DECLARE_HANDLE(helix_t);
+HELIX_DECLARE_HANDLE(helix_chan_t);
 
-//core apis
+//core APIs
 HELIX_API helix_t helix_open(helix_alloc_t * alloc, helix_errcode * errorCode);
 
 HELIX_API void helix_exit(helix_t helix);
@@ -169,27 +170,28 @@ HELIX_API void helix_notify_all(helix_t helix, uintptr_t eventid);
 
 HELIX_API void helix_duration_cast(helix_duration * source, helix_duration* target);
 
-HELIX_DECLARE_HANDLE(helix_sock_t);
+//helix chan APIs
 
-//socket apis
-HELIX_API helix_sock_t helix_sock(helix_t helix,int af,int type,int protocol);
+HELIX_API helix_chan_t helix_chan(helix_t helix,size_t blocksize,size_t length,const char* name);
 
-HELIX_API void helix_close_sock(helix_t helix,helix_sock_t sock);
+HELIX_API void helix_chan_close(helix_t helix, helix_chan_t chan);
 
-HELIX_API void helix_bind(helix_t helix,helix_sock_t sock,const struct sockaddr *addr,socklen_t addrlen);
+HELIX_API uintptr_t helix_chan_reader(helix_t helix, helix_chan_t chan);
 
-HELIX_API void helix_listen(helix_t helix,helix_sock_t sock,int backlog);
+HELIX_API uintptr_t helix_chan_writer(helix_t helix, helix_chan_t chan);
 
-HELIX_API uintptr_t helix_accept(helix_t helix,helix_sock_t sock,struct sockaddr *addr, socklen_t *addrlen);
+HELIX_API size_t helix_chan_blocksize(helix_t helix, helix_chan_t chan);
 
-HELIX_API void helix_connect(helix_t helix,helix_sock_t sock,struct sockaddr *addr, socklen_t *addrlen);
+HELIX_API size_t helix_chan_length(helix_t helix, helix_chan_t chan);
 
-HELIX_API size_t helix_send(helix_t helix,helix_sock_t sock,const void* buf,size_t length,int flags);
+HELIX_API void* helix_chan_block(helix_t helix, helix_chan_t chan);
 
-HELIX_API size_t helix_sendto(helix_t helix,helix_sock_t sock,const void* buf,size_t length,int flags,const struct sockaddr *dest_addr, socklen_t addrlen);
+HELIX_API void helix_chan_block_free(helix_t helix, helix_chan_t chan,void* block);
 
-HELIX_API size_t helix_recv(helix_t helix,helix_sock_t sock,void* buf,size_t length,int flags);
+HELIX_API void helix_chan_write(helix_t helix, helix_chan_t chan, const void* block,size_t length);
 
-HELIX_API size_t helix_recvfrom(helix_t helix,helix_sock_t sock,void* buf,size_t length,int flags,struct sockaddr *src_addr, socklen_t *addrlen);
+HELIX_API void* helix_chan_read(helix_t helix, helix_chan_t chan,size_t *length);
+
+
 
 #endif //HELIX_ABI_H
